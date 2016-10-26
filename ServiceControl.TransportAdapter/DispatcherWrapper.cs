@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Threading.Tasks;
 using NServiceBus.Transport;
 
 namespace ServiceControl.TransportAdapter
 {
     class DispatcherWrapper
     {
-        Func<IDispatchMessages> dispatcherFactory;
-        public IDispatchMessages CreateDispatcher() => dispatcherFactory();
+        TaskCompletionSource<IDispatchMessages> dispatcherFuture;
 
-        public void Initialize(Func<IDispatchMessages> factory)
+        public DispatcherWrapper(TaskCompletionSource<IDispatchMessages> dispatcherFuture)
         {
-            dispatcherFactory = factory;
+            this.dispatcherFuture = dispatcherFuture;
+        }
+
+        public void SetResult(IDispatchMessages result)
+        {
+            dispatcherFuture.SetResult(result);
         }
     }
 }
