@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Metrics;
 using NServiceBus;
 using NServiceBus.ConsistencyGuarantees;
 using NServiceBus.Features;
@@ -12,6 +13,8 @@ namespace ServiceControl.TransportAdapter
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var auditForwardMeter = Metric.Meter("Audit", Unit.Custom("Messages"));
+
             var retrySatelliteAddress = GetSatelliteAddress(context, "retry");
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
@@ -32,10 +35,11 @@ namespace ServiceControl.TransportAdapter
                 (builder, messageContext) => Forward(builder, messageContext, serviceControlHeartbeatQueue));
 
             context.AddSatelliteReceiver("ForwardAudits", GetSatelliteAddress(context, "audit"), requiredTransactionSupport, new PushRuntimeSettings(), HandleFailure,
-                (builder, messageContext) =>
+                async (builder, messageContext) =>
                 {
-                    Console.WriteLine("Forwarding processed message");
-                    return Forward(builder, messageContext, serviceControlAuditQueue);
+                    //Console.WriteLine("Forwarding processed message");
+                    await Forward(builder, messageContext, serviceControlAuditQueue).ConfigureAwait(false);
+                    auditForwardMeter.Mark();
                 });
         }
 
