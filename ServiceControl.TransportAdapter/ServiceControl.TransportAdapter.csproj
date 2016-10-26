@@ -54,7 +54,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DispatcherForwarderFeature.cs" />
+    <Compile Include="DispatcherInitializer.cs" />
     <Compile Include="DispatcherWrapper.cs" />
+    <Compile Include="Forwarding.cs" />
     <Compile Include="FrontendPublisher.cs" />
     <Compile Include="IntegrationEventForwarder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -17,10 +17,6 @@ namespace ServiceControl.TransportAdapter
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
             context.AddSatelliteReceiver("ForwardRetries", GetSatelliteAddress(context, "retry"), requiredTransactionSupport, new PushRuntimeSettings(), HandleFailure, ForwardRetry);
-
-            var wrapper = context.Settings.Get<DispatcherWrapper>();
-            var transportInfra = context.Settings.Get<TransportInfrastructure>();
-            wrapper.Initialize(transportInfra.ConfigureSendInfrastructure().DispatcherFactory);
         }
 
         static string GetSatelliteAddress(FeatureConfigurationContext context, string suffix)

@@ -37,10 +37,6 @@ namespace ServiceControl.TransportAdapter
                     Console.WriteLine("Forwarding processed message");
                     return Forward(builder, messageContext, serviceControlAuditQueue);
                 });
-
-            var wrapper = context.Settings.Get<DispatcherWrapper>();
-            var transportInfra = context.Settings.Get<TransportInfrastructure>();
-            wrapper.Initialize(transportInfra.ConfigureSendInfrastructure().DispatcherFactory);
         }
 
         static string GetSatelliteAddress(FeatureConfigurationContext context, string suffix)
