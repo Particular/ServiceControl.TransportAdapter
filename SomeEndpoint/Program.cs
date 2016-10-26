@@ -23,8 +23,8 @@ namespace SomeEndpoint
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
 
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("SCAdapter.error");
-            config.AuditProcessedMessagesTo("SCAdapter.audit");
+            config.SendFailedMessagesTo("ServiceControl.SqlServer.error");
+            config.AuditProcessedMessagesTo("ServiceControl.SqlServer.audit");
             config.EnableInstallers();
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));

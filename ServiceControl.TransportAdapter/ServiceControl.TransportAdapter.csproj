@@ -40,6 +40,10 @@
       <HintPath>..\packages\NServiceBus.6.0.0\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ServiceControl.Contracts.1.1.1\lib\net40\ServiceControl.Contracts.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -51,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DispatcherWrapper.cs" />
+    <Compile Include="FrontendPublisher.cs" />
+    <Compile Include="IntegrationEventForwarder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Forwarder.cs" />
     <Compile Include="ServiceControlAdapter.cs" />
