@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ConnectionManager;
 using NServiceBus;
 using NServiceBus.Transport.SQLServer;
 using ServiceControl.TransportAdapter;
 
-namespace SqlSeverSample
+namespace ServiceControl.SqlServer
 {
     class Program
     {
@@ -19,7 +16,7 @@ namespace SqlSeverSample
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlAdapter<SqlServerTransport>("SCAdapter", InitializeSqlTransport);
+            var adapter = new ServiceControlAdapter<SqlServerTransport>("ServiceControl.SqlServer", InitializeSqlTransport);
 
             await adapter.Start();
 

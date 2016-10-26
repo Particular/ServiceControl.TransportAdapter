@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
-using ConnectionManager;
 using NServiceBus;
-using NServiceBus.Transport.SQLServer;
 using ServiceControl.Contracts;
 
-namespace SomeEndpoint
+namespace YetAnotherEndpoint
 {
     class Program
     {
@@ -17,19 +14,16 @@ namespace SomeEndpoint
 
         static async Task AsyncMain()
         {
-            var config = new EndpointConfiguration("OtherEndpoint");
+            var config = new EndpointConfiguration("YetAnotherEndpoint");
 
-            var transport = config.UseTransport<SqlServerTransport>();
-            transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True");
-            transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
-
-            transport.Routing().RegisterPublisher(typeof(CustomCheckFailed).Assembly, "ServiceControl.SqlServer");
-            config.Conventions().DefiningEventsAs(IsEvent);
+            var transport = config.UseTransport<RabbitMQTransport>();
+            transport.ConnectionString("host=localhost");
 
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("ServiceControl.SqlServer.error");
-            config.AuditProcessedMessagesTo("ServiceControl.SqlServer.audit");
+            config.SendFailedMessagesTo("ServiceControl.RabbitMQ.error");
+            config.AuditProcessedMessagesTo("ServiceControl.RabbitMQ.audit");
             config.EnableInstallers();
+            config.Conventions().DefiningEventsAs(IsEvent);
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));
 
@@ -40,7 +34,7 @@ namespace SomeEndpoint
             while (true)
             {
                 Console.ReadLine();
-                await endpoint.SendLocal(new OtherMessage());
+                await endpoint.SendLocal(new YetAnotherMessage());
             }
         }
 
@@ -51,7 +45,7 @@ namespace SomeEndpoint
         }
     }
 
-    class HeartbeatHandler : 
+    class HeartbeatHandler :
         IHandleMessages<HeartbeatStopped>,
         IHandleMessages<HeartbeatRestored>
     {
@@ -69,10 +63,10 @@ namespace SomeEndpoint
         }
     }
 
-    class OtherMessageHandler : IHandleMessages<OtherMessage>
+    class YetAnotherMessageHandler : IHandleMessages<YetAnotherMessage>
     {
         static readonly Random R = new Random();
-        public Task Handle(OtherMessage message, IMessageHandlerContext context)
+        public Task Handle(YetAnotherMessage message, IMessageHandlerContext context)
         {
             if (R.Next(2) == 0)
             {
@@ -83,7 +77,7 @@ namespace SomeEndpoint
         }
     }
 
-    class OtherMessage : IMessage
+    class YetAnotherMessage : IMessage
     {
     }
 }

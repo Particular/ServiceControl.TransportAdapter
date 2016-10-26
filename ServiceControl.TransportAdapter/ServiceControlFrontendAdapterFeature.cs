@@ -12,6 +12,7 @@ namespace ServiceControl.TransportAdapter
     {
         protected override void Setup(FeatureConfigurationContext context)
         {
+            var retrySatelliteAddress = GetSatelliteAddress(context, "retry");
             var requiredTransactionSupport = context.Settings.GetRequiredTransactionModeForReceives();
 
             var serviceControlErrorQueue = context.Settings.GetOrDefault<string>("ServiceControl.ErrorQueue") ?? "error";
@@ -22,6 +23,8 @@ namespace ServiceControl.TransportAdapter
                 (builder, messageContext) =>
                 {
                     Console.WriteLine("Forwarding failed message");
+                    messageContext.Headers["ServiceControl.Adapter.RetryTo"] = retrySatelliteAddress;
+
                     return Forward(builder, messageContext, serviceControlErrorQueue);
                 });
 
