@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{F0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherEndpoint", "YetAnotherEndpoint\YetAnotherEndpoint.csproj", "{EF48172D-73E5-4598-84F4-6E5F5C37889D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlServerThroughputTest", "SqlServerThroughputTest\SqlServerThroughputTest.csproj", "{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{EF48172D-73E5-4598-84F4-6E5F5C37889D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF48172D-73E5-4598-84F4-6E5F5C37889D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF48172D-73E5-4598-84F4-6E5F5C37889D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,5 +72,6 @@ Global
 		{90033DA1-5D9E-412B-9AA1-89604E75CBF9} = {B7BE3970-A1FC-4561-B068-4F8D56FA213A}
 		{4AE8995A-EECD-488A-83F7-1C307529BAB0} = {F02DA5DF-E450-4896-B27C-FCAF4541EA8F}
 		{EF48172D-73E5-4598-84F4-6E5F5C37889D} = {F02DA5DF-E450-4896-B27C-FCAF4541EA8F}
+		{3E1F7D0B-8819-48F8-9AEF-6436CB09C7AA} = {B7BE3970-A1FC-4561-B068-4F8D56FA213A}
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Metrics;
 using NServiceBus;
 using NServiceBus.Features;
 using NServiceBus.Transport;
@@ -20,7 +21,7 @@ namespace ServiceControl.TransportAdapter
         public ServiceControlAdapter(string name, Action<EndpointConfiguration, TransportExtensions<TFrontendTransport>> provideFrontendConfiguration)
         {
             frontendConfig = new EndpointConfiguration(name);
-            var transport = frontendConfig.UseTransport<TFrontendTransport>();
+            var transport = frontendConfig.UseTransport<TFrontendTransport>().Transactions(TransportTransactionMode.SendsAtomicWithReceive);
             frontendConfig.UsePersistence<InMemoryPersistence>();
             frontendConfig.SendFailedMessagesTo("error"); //Not used
             frontendConfig.EnableFeature<ServiceControlFrontendAdapterFeature>();
@@ -32,8 +33,9 @@ namespace ServiceControl.TransportAdapter
             var frontEndPublisher = new FrontendPublisher(frontendSession);
 
             backendConfig = new EndpointConfiguration(name);
-            var backendRouting = backendConfig.UseTransport<MsmqTransport>().Routing(); //Always use MSMQ on the backend
-            backendRouting.RegisterPublisher(typeof(Contracts.CustomCheckFailed).Assembly, "Particular.ServiceControl");
+            var backendTransport = backendConfig.UseTransport<MsmqTransport>();
+            backendTransport.Transactions(TransportTransactionMode.TransactionScope);
+            backendTransport.Routing().RegisterPublisher(typeof(Contracts.CustomCheckFailed).Assembly, "Particular.ServiceControl");
             backendConventions = backendConfig.Conventions();
             backendConventions.DefiningEventsAs(IsEvent);
             backendConfig.UsePersistence<InMemoryPersistence>();

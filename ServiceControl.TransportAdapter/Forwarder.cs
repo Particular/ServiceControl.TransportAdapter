@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Metrics;
 using NServiceBus.Extensibility;
 using NServiceBus.Routing;
 using NServiceBus.Transport;
