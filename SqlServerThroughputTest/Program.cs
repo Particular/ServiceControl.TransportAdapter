@@ -41,7 +41,7 @@ namespace SqlServerThroughputTest
                     r.WithConsoleReport(TimeSpan.FromSeconds(1));
                 });
 
-            var adapter = new ServiceControlAdapter<SqlServerTransport>("ServiceControl.SqlServer", InitializeSqlTransport);
+            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", new string[0], InitializeSqlTransport);
 
             await adapter.Start();
 
@@ -51,9 +51,8 @@ namespace SqlServerThroughputTest
             await adapter.Stop();
         }
 
-        static void InitializeSqlTransport(EndpointConfiguration config, TransportExtensions<SqlServerTransport> transport)
+        static void InitializeSqlTransport(TransportExtensions<SqlServerTransport> transport)
         {
-            config.EnableInstallers();
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_PerfTest;Integrated Security=True");
         }
     }

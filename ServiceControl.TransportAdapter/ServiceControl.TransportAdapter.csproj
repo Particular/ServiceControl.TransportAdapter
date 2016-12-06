@@ -41,7 +41,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.0.0\lib\net452\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.6.0.3\lib\net452\NServiceBus.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NServiceBus.Raw, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Raw.0.1.1\lib\net452\NServiceBus.Raw.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceControl.Contracts, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -58,17 +62,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DispatcherForwarderFeature.cs" />
-    <Compile Include="DispatcherInitializer.cs" />
-    <Compile Include="DispatcherWrapper.cs" />
-    <Compile Include="Forwarding.cs" />
-    <Compile Include="FrontendPublisher.cs" />
-    <Compile Include="IntegrationEventForwarder.cs" />
+    <Compile Include="EndpointCollection.cs" />
+    <Compile Include="ServiceControlTransportAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Forwarder.cs" />
-    <Compile Include="ServiceControlAdapter.cs" />
-    <Compile Include="ServiceControlBackendAdaperFeature.cs" />
-    <Compile Include="ServiceControlFrontendAdapterFeature.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

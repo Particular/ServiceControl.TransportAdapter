@@ -16,7 +16,7 @@ namespace ServiceControl.SqlServer
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlAdapter<SqlServerTransport>("ServiceControl.SqlServer", InitializeSqlTransport);
+            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", new string[0], InitializeSqlTransport);
 
             await adapter.Start();
 
@@ -26,7 +26,7 @@ namespace ServiceControl.SqlServer
             await adapter.Stop();
         }
 
-        static void InitializeSqlTransport(EndpointConfiguration config, TransportExtensions<SqlServerTransport> transport)
+        static void InitializeSqlTransport(TransportExtensions<SqlServerTransport> transport)
         {
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True");
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);

@@ -20,8 +20,8 @@ namespace YetAnotherEndpoint
             transport.ConnectionString("host=localhost");
 
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("ServiceControl.RabbitMQ.error");
-            config.AuditProcessedMessagesTo("ServiceControl.RabbitMQ.audit");
+            config.SendFailedMessagesTo("error");
+            config.AuditProcessedMessagesTo("audit");
             config.EnableInstallers();
             config.Conventions().DefiningEventsAs(IsEvent);
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
