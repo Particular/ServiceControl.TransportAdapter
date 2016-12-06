@@ -14,7 +14,7 @@ namespace ServiceControl.RabbitMQ
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlAdapter<RabbitMQTransport>("ServiceControl.RabbitMQ", InitializeRabbitMQTransport);
+            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("SCAdapter", new string[0], InitializeTransport);
 
             await adapter.Start();
 
@@ -24,7 +24,7 @@ namespace ServiceControl.RabbitMQ
             await adapter.Stop();
         }
 
-        static void InitializeRabbitMQTransport(EndpointConfiguration config, TransportExtensions<RabbitMQTransport> transport)
+        static void InitializeTransport(TransportExtensions<RabbitMQTransport> transport)
         {
             transport.ConnectionString("host=localhost");
         }
