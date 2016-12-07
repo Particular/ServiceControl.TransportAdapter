@@ -18,18 +18,19 @@ namespace ServiceControl.TransportAdapter
         ILog logger = LogManager.GetLogger(typeof(ServiceControlTransportAdapter<,>));
 
         string baseName;
-        string[] integrationSubscribers;
+        readonly IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
         Action<TransportExtensions<TFront>> userTransportCustomization;
         EndpointCollection endpoints;
         IRawEndpointInstance inputForwarder;
         IRawEndpointInstance outputForwarder;
         static Action<TransportExtensions<TFront>> emptyCustomization = t => { };
 
-        public ServiceControlTransportAdapter(string baseName, string[] integrationSubscribers,
+        public ServiceControlTransportAdapter(string baseName, 
+            IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
             Action<TransportExtensions<TFront>> userTransportCustomization = null)
         {
             this.baseName = baseName;
-            this.integrationSubscribers = integrationSubscribers;
+            this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
             this.userTransportCustomization = userTransportCustomization ?? emptyCustomization;
         }
 
@@ -77,7 +78,8 @@ namespace ServiceControl.TransportAdapter
         {
             logger.Info($"Forwarding a integration message.");
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
-            var operations = integrationSubscribers.Select(s => new TransportOperation(message, new UnicastAddressTag(s))).ToArray();
+            var destinations = integrationEventPublishingStrategy.GetDestinations(context.Headers);
+            var operations = destinations.Select(d => new TransportOperation(message, d)).ToArray();
             return outputForwarder.SendRaw(new TransportOperations(operations), context.TransportTransaction, context.Context);
         }
 
