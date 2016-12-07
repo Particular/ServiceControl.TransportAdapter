@@ -14,6 +14,7 @@ namespace YetAnotherEndpoint
 
         static async Task AsyncMain()
         {
+            Console.Title = "YetAnotherEndpoint";
             var config = new EndpointConfiguration("YetAnotherEndpoint");
 
             var transport = config.UseTransport<RabbitMQTransport>();
