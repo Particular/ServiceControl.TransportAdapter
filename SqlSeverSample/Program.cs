@@ -16,7 +16,9 @@ namespace ServiceControl.SqlServer
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", new string[0], InitializeSqlTransport);
+            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", 
+                new UnicastIntegrationEventPublishingStrategy("SomeEndpoint", "YetAnotherEndpoint"), 
+                InitializeSqlTransport);
 
             await adapter.Start();
 

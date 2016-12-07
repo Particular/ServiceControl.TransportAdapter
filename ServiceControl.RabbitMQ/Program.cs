@@ -14,7 +14,7 @@ namespace ServiceControl.RabbitMQ
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("SCAdapter", new string[0], InitializeTransport);
+            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("SCAdapter", new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint"), InitializeTransport);
 
             await adapter.Start();
 
