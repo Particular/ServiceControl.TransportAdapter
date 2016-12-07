@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 using ConnectionManager;
 using NServiceBus;
 using NServiceBus.Transport.SQLServer;
 using ServiceControl.Contracts;
 
-namespace SomeEndpoint
+namespace OtherEndpoint
 {
     class Program
     {
@@ -17,18 +16,18 @@ namespace SomeEndpoint
 
         static async Task AsyncMain()
         {
+            Console.Title = "OtherEndpoint";
             var config = new EndpointConfiguration("OtherEndpoint");
 
             var transport = config.UseTransport<SqlServerTransport>();
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True");
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
 
-            transport.Routing().RegisterPublisher(typeof(CustomCheckFailed).Assembly, "ServiceControl.SqlServer");
             config.Conventions().DefiningEventsAs(IsEvent);
 
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("ServiceControl.SqlServer.error");
-            config.AuditProcessedMessagesTo("ServiceControl.SqlServer.audit");
+            config.SendFailedMessagesTo("error");
+            config.AuditProcessedMessagesTo("audit");
             config.EnableInstallers();
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));

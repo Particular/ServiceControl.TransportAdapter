@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using ConnectionManager;
 using NServiceBus;
+using NServiceBus.Configuration.AdvanceExtensibility;
+using NServiceBus.Routing;
 using NServiceBus.Transport.SQLServer;
 using ServiceControl.TransportAdapter;
 
@@ -11,13 +13,14 @@ namespace ServiceControl.SqlServer
     {
         static void Main(string[] args)
         {
+            Console.Title = "ServiceControl.SqlServer";
             AsyncMain().GetAwaiter().GetResult();
         }
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", 
-                new UnicastIntegrationEventPublishingStrategy("SomeEndpoint", "YetAnotherEndpoint"), 
+            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer",
+                new UnicastIntegrationEventPublishingStrategy("OtherEndpoint"),
                 InitializeSqlTransport);
 
             await adapter.Start();
@@ -31,6 +34,7 @@ namespace ServiceControl.SqlServer
         static void InitializeSqlTransport(TransportExtensions<SqlServerTransport> transport)
         {
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True");
+            transport.GetSettings().Set<EndpointInstances>(new EndpointInstances());
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
         }
     }

@@ -9,12 +9,14 @@ namespace ServiceControl.RabbitMQ
     {
         static void Main(string[] args)
         {
+            Console.Title = "ServiceControl.RabbitMQ";
             AsyncMain().GetAwaiter().GetResult();
         }
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("SCAdapter", new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint"), InitializeTransport);
+            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("ServiceControl.RabbitMQ", 
+                new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint"), InitializeTransport);
 
             await adapter.Start();
 

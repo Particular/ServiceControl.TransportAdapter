@@ -44,7 +44,7 @@
       <HintPath>..\packages\NServiceBus.6.0.3\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.Raw, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NServiceBus.Raw">
       <HintPath>..\packages\NServiceBus.Raw.0.1.1\lib\net452\NServiceBus.Raw.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -74,11 +74,4 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

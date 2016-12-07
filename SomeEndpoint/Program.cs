@@ -16,6 +16,7 @@ namespace SomeEndpoint
 
         static async Task AsyncMain()
         {
+            Console.Title = "SomeEndpoint";
             var config = new EndpointConfiguration("SomeEndpoint");
 
             var transport = config.UseTransport<SqlServerTransport>();
@@ -23,8 +24,8 @@ namespace SomeEndpoint
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
 
             config.UsePersistence<InMemoryPersistence>();
-            config.SendFailedMessagesTo("ServiceControl.SqlServer.error");
-            config.AuditProcessedMessagesTo("ServiceControl.SqlServer.audit");
+            config.SendFailedMessagesTo("error");
+            config.AuditProcessedMessagesTo("audit");
             config.EnableInstallers();
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));

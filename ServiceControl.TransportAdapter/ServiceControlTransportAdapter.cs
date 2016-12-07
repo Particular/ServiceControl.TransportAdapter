@@ -36,37 +36,49 @@ namespace ServiceControl.TransportAdapter
 
         public async Task Start()
         {
-            var inputForwarderConfig = ConfigureBackendTransport(RawEndpointConfiguration.CreateSendOnly($"{baseName}.FrontendForwarder"));
+            var inputForwarderConfig = ConfigureRetryEndpoint(RawEndpointConfiguration.CreateSendOnly($"{baseName}.FrontendForwarder"));
             inputForwarder = await RawEndpoint.Start(inputForwarderConfig).ConfigureAwait(false);
 
             var outputForwarderConfig = ConfigureFrontendTransport(RawEndpointConfiguration.CreateSendOnly($"{baseName}.BackendForwarder"));
             outputForwarder = await RawEndpoint.Start(outputForwarderConfig).ConfigureAwait(false);
 
+            var poisonMessageQueue = "poison";
             endpoints = new EndpointCollection(
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("audit", (context, _) => OnAuditMessage(context))),
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("error", (context, _) => OnErrorMessage(context))),
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context))),
-                ConfigureBackendTransport(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context))),
-                ConfigureBackendTransport(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context)))
+                ConfigureFrontendTransport(RawEndpointConfiguration.Create("audit", (context, _) => OnAuditMessage(context), poisonMessageQueue)),
+                ConfigureFrontendTransport(RawEndpointConfiguration.Create("error", (context, _) => OnErrorMessage(context), poisonMessageQueue)),
+                ConfigureFrontendTransport(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context), poisonMessageQueue)),
+                ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueue)),
+                ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueue))
                 );
             await endpoints.Start();
         }
 
-        RawEndpointConfiguration ConfigureBackendTransport(RawEndpointConfiguration config)
+        RawEndpointConfiguration ConfigureRetryEndpoint(RawEndpointConfiguration config)
         {
-            config.SendFailedMessagesTo("error");
+            config.DefaultErrorHandlingPolicy("error", 5);
             config.UseTransport<TBack>();
+            config.AutoCreateQueue();
+            return config;
+        }
+
+        RawEndpointConfiguration ConfigureIntegrationEndpoint(RawEndpointConfiguration config)
+        {
+            config.CustomErrorHandlingPolicy(new IntegrationRetryPolicy());
+            config.UseTransport<TBack>();
+            config.AutoCreateQueue();
             return config;
         }
 
         RawEndpointConfiguration ConfigureFrontendTransport(RawEndpointConfiguration config)
         {
-            config.SendFailedMessagesTo("error");
+            config.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var extensions = config.UseTransport<TFront>();
             userTransportCustomization(extensions);
+            config.AutoCreateQueue();
             return config;
         }
 
+        
         public async Task Stop()
         {
             await inputForwarder.Stop().ConfigureAwait(false);
@@ -102,6 +114,7 @@ namespace ServiceControl.TransportAdapter
 
         Task OnErrorMessage(MessageContext context)
         {
+            context.Headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
             logger.Info($"Forwarding an error message.");
             return Forward(context, inputForwarder, "error");
         }
@@ -117,6 +130,26 @@ namespace ServiceControl.TransportAdapter
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
             return forwarder.SendRaw(new TransportOperations(operation), context.TransportTransaction, context.Context);
+        }
+
+        class RetryForeverPolicy : IErrorHandlingPolicy
+        {
+            public Task<ErrorHandleResult> OnError(ErrorContext errorContext, IDispatchMessages dispatcher, Func<ErrorContext, string, Task<ErrorHandleResult>> sendToErrorQueue)
+            {
+                return Task.FromResult(ErrorHandleResult.RetryRequired);
+            }
+        }
+
+        class IntegrationRetryPolicy : IErrorHandlingPolicy
+        {
+            public Task<ErrorHandleResult> OnError(ErrorContext errorContext, IDispatchMessages dispatcher, Func<ErrorContext, string, Task<ErrorHandleResult>> sendToErrorQueue)
+            {
+                if (errorContext.ImmediateProcessingFailures < 5)
+                {
+                    return Task.FromResult(ErrorHandleResult.RetryRequired);
+                }
+                return Task.FromResult(ErrorHandleResult.Handled); //Ignore this message
+            }
         }
     }
 }
