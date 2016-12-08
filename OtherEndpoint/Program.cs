@@ -31,6 +31,7 @@ namespace OtherEndpoint
             config.EnableInstallers();
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));
+            config.UseSerialization<JsonSerializer>();
 
             var endpoint = await Endpoint.Start(config);
             
