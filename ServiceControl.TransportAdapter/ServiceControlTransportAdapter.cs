@@ -113,9 +113,7 @@ namespace ServiceControl.TransportAdapter
 
             context.Headers.Remove(TargetAddressHeader);
 
-            throw new Exception("Failure when retrying");
-
-            //return Forward(context, outputForwarder, destination);
+            return Forward(context, outputForwarder, destination);
         }
 
         Task OnControlMessage(MessageContext context)
