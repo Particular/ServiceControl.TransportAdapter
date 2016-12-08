@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using NServiceBus;
+using NServiceBus.Faults;
 using NServiceBus.Logging;
 using NServiceBus.Raw;
 using NServiceBus.Routing;
@@ -46,7 +47,7 @@ namespace ServiceControl.TransportAdapter
             endpoints = new EndpointCollection(
                 ConfigureFrontendTransport(RawEndpointConfiguration.Create("audit", (context, _) => OnAuditMessage(context), poisonMessageQueue)),
                 ConfigureFrontendTransport(RawEndpointConfiguration.Create("error", (context, _) => OnErrorMessage(context), poisonMessageQueue)),
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context), poisonMessageQueue)),
+                ConfigureControlEndpoint(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context), poisonMessageQueue)),
                 ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueue)),
                 ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueue))
                 );
@@ -55,7 +56,7 @@ namespace ServiceControl.TransportAdapter
 
         RawEndpointConfiguration ConfigureRetryEndpoint(RawEndpointConfiguration config)
         {
-            config.DefaultErrorHandlingPolicy("error", 5);
+            config.CustomErrorHandlingPolicy(new RetryForwarderErrorPolicy(baseName, "error"));
             config.UseTransport<TBack>();
             config.AutoCreateQueue();
             return config;
@@ -63,7 +64,7 @@ namespace ServiceControl.TransportAdapter
 
         RawEndpointConfiguration ConfigureIntegrationEndpoint(RawEndpointConfiguration config)
         {
-            config.CustomErrorHandlingPolicy(new IntegrationRetryPolicy());
+            config.CustomErrorHandlingPolicy(new BestEffortPolicy());
             config.UseTransport<TBack>();
             config.AutoCreateQueue();
             return config;
@@ -78,7 +79,16 @@ namespace ServiceControl.TransportAdapter
             return config;
         }
 
-        
+        RawEndpointConfiguration ConfigureControlEndpoint(RawEndpointConfiguration config)
+        {
+            config.CustomErrorHandlingPolicy(new BestEffortPolicy());
+            var extensions = config.UseTransport<TFront>();
+            userTransportCustomization(extensions);
+            config.AutoCreateQueue();
+            return config;
+        }
+
+
         public async Task Stop()
         {
             await inputForwarder.Stop().ConfigureAwait(false);
@@ -103,7 +113,9 @@ namespace ServiceControl.TransportAdapter
 
             context.Headers.Remove(TargetAddressHeader);
 
-            return Forward(context, outputForwarder, destination);
+            throw new Exception("Failure when retrying");
+
+            //return Forward(context, outputForwarder, destination);
         }
 
         Task OnControlMessage(MessageContext context)
@@ -134,21 +146,49 @@ namespace ServiceControl.TransportAdapter
 
         class RetryForeverPolicy : IErrorHandlingPolicy
         {
-            public Task<ErrorHandleResult> OnError(ErrorContext errorContext, IDispatchMessages dispatcher, Func<ErrorContext, string, Task<ErrorHandleResult>> sendToErrorQueue)
+            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
         }
 
-        class IntegrationRetryPolicy : IErrorHandlingPolicy
+        class BestEffortPolicy : IErrorHandlingPolicy
         {
-            public Task<ErrorHandleResult> OnError(ErrorContext errorContext, IDispatchMessages dispatcher, Func<ErrorContext, string, Task<ErrorHandleResult>> sendToErrorQueue)
+            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
-                if (errorContext.ImmediateProcessingFailures < 5)
+                if (handlingContext.Error.ImmediateProcessingFailures < 5)
                 {
                     return Task.FromResult(ErrorHandleResult.RetryRequired);
                 }
                 return Task.FromResult(ErrorHandleResult.Handled); //Ignore this message
+            }
+        }
+
+        class RetryForwarderErrorPolicy : IErrorHandlingPolicy
+        {
+            string baseName;
+            string errorQueue;
+
+            public RetryForwarderErrorPolicy(string baseName, string errorQueue)
+            {
+                this.baseName = baseName;
+                this.errorQueue = errorQueue;
+            }
+            
+            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            {
+                if (handlingContext.Error.ImmediateProcessingFailures < 5)
+                {
+                    return Task.FromResult(ErrorHandleResult.RetryRequired);
+                }
+                var headers = handlingContext.Error.Message.Headers;
+
+                //Will show as if failure occured in the original failure queue.
+                var destination = headers["ServiceControl.TargetEndpointAddress"];
+                headers.Remove("ServiceControl.TargetEndpointAddress");
+                headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
+                headers[FaultsHeaderKeys.FailedQ] = destination;
+                return handlingContext.MoveToErrorQueue(errorQueue, false);
             }
         }
     }
