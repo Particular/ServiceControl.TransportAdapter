@@ -23,8 +23,6 @@ namespace OtherEndpoint
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True");
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
 
-            config.Conventions().DefiningEventsAs(IsEvent);
-
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");
             config.AuditProcessedMessagesTo("audit");
@@ -32,6 +30,8 @@ namespace OtherEndpoint
             config.Recoverability().Immediate(i => i.NumberOfRetries(0));
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));
             config.UseSerialization<JsonSerializer>();
+
+            var integrationEndpoint = await Endpoint.Start(BuildIntegrationEventListenerConfig());
 
             var endpoint = await Endpoint.Start(config);
             
@@ -44,10 +44,21 @@ namespace OtherEndpoint
             }
         }
 
-        static bool IsEvent(Type t)
+        static EndpointConfiguration BuildIntegrationEventListenerConfig()
         {
-            return t.Namespace == "ServiceControl.Contracts" ||
-                (typeof(IEvent).IsAssignableFrom(t) && typeof(IEvent) != t);
+            var config = new EndpointConfiguration("OtherEndpoint.IntegrationListener");
+            config.UsePersistence<InMemoryPersistence>();
+            config.SendFailedMessagesTo("poison");
+            config.EnableInstallers();
+            config.Conventions().DefiningEventsAs(t => t.Namespace == "ServiceControl.Contracts" ||
+                                                                               (typeof(IEvent).IsAssignableFrom(t) && typeof(IEvent) != t));
+
+            var transport = config.UseTransport<SqlServerTransport>();
+            transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True");
+            config.Recoverability()
+                .CustomPolicy((recoverabilityConfig, context) => RecoverabilityAction.MoveToError("poison"));
+            config.UseSerialization<JsonSerializer>();
+            return config;
         }
     }
 
