@@ -7,7 +7,7 @@ namespace ServiceControl.TransportAdapter
     class EndpointCollection
     {
         RawEndpointConfiguration[] endpointConfigs;
-        IRawEndpointInstance[] endpoints;
+        IReceivingRawEndpoint[] endpoints;
 
         public EndpointCollection(params RawEndpointConfiguration[] endpointConfigs)
         {

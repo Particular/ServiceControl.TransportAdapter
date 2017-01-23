@@ -20,18 +20,31 @@ namespace ServiceControl.TransportAdapter
 
         string baseName;
         IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
+        IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy;
         Action<TransportExtensions<TFront>> userTransportCustomization;
         EndpointCollection endpoints;
-        IRawEndpointInstance inputForwarder;
-        IRawEndpointInstance outputForwarder;
+        IReceivingRawEndpoint inputForwarder;
+        IReceivingRawEndpoint outputForwarder;
+        IReceivingRawEndpoint integrationEndpoint;
 
-        public ServiceControlTransportAdapter(string baseName, 
-            IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
-            Action<TransportExtensions<TFront>> userTransportCustomization = null)
+        public ServiceControlTransportAdapter(string baseName, Action<TransportExtensions<TFront>> userTransportCustomization = null)
         {
             this.baseName = baseName;
-            this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
             this.userTransportCustomization = userTransportCustomization ?? (t => { });
+        }
+
+        public void ConfigureIntegrationEventForwarding(IIntegrationEventPublishingStrategy integrationEventPublishingStrategy, IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
+        {
+            if (integrationEventPublishingStrategy == null)
+            {
+                throw new ArgumentNullException(nameof(integrationEventPublishingStrategy));
+            }
+            if (integrationEventSubscribingStrategy == null)
+            {
+                throw new ArgumentNullException(nameof(integrationEventSubscribingStrategy));
+            }
+            this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
+            this.integrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
         }
 
         public async Task Start()
@@ -47,10 +60,16 @@ namespace ServiceControl.TransportAdapter
                 ConfigureFrontendTransport(RawEndpointConfiguration.Create("audit", (context, _) => OnAuditMessage(context), poisonMessageQueue)),
                 ConfigureFrontendTransport(RawEndpointConfiguration.Create("error", (context, _) => OnErrorMessage(context), poisonMessageQueue)),
                 ConfigureControlEndpoint(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context), poisonMessageQueue)),
-                ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueue)),
-                ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueue))
+                ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueue))
                 );
-            await endpoints.Start();
+            await endpoints.Start().ConfigureAwait(false);
+
+            if (integrationEventSubscribingStrategy != null)
+            {
+                var integrationEndpointConfig = ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueue));
+                integrationEndpoint = await RawEndpoint.Start(integrationEndpointConfig).ConfigureAwait(false);
+                await integrationEventSubscribingStrategy.EnsureSubscribed(integrationEndpoint, "Particular.ServiceControl").ConfigureAwait(false);
+            }
         }
 
         RawEndpointConfiguration ConfigureRetryEndpoint(RawEndpointConfiguration config)
@@ -92,6 +111,10 @@ namespace ServiceControl.TransportAdapter
         {
             await inputForwarder.Stop().ConfigureAwait(false);
             await outputForwarder.Stop().ConfigureAwait(false);
+            if (integrationEndpoint != null)
+            {
+                await integrationEndpoint.Stop().ConfigureAwait(false);
+            }
             await endpoints.Stop().ConfigureAwait(false);
         }
 
@@ -101,7 +124,7 @@ namespace ServiceControl.TransportAdapter
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var destinations = integrationEventPublishingStrategy.GetDestinations(context.Headers);
             var operations = destinations.Select(d => new TransportOperation(message, d)).ToArray();
-            return outputForwarder.SendRaw(new TransportOperations(operations), context.TransportTransaction, context.Context);
+            return outputForwarder.Dispatch(new TransportOperations(operations), context.TransportTransaction, context.Context);
         }
 
         Task OnRetryMessage(MessageContext context)
@@ -134,11 +157,11 @@ namespace ServiceControl.TransportAdapter
             return Forward(context, inputForwarder, "audit");
         }
 
-        static Task Forward(MessageContext context, IRawEndpointInstance forwarder, string destination)
+        static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.SendRaw(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
         }
 
         class RetryForeverPolicy : IErrorHandlingPolicy

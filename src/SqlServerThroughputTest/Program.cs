@@ -41,7 +41,7 @@ namespace SqlServerThroughputTest
                     r.WithConsoleReport(TimeSpan.FromSeconds(1));
                 });
 
-            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", new UnicastIntegrationEventPublishingStrategy(), InitializeSqlTransport);
+            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", InitializeSqlTransport);
 
             await adapter.Start();
 
