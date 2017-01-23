@@ -31,6 +31,7 @@ namespace YetAnotherEndpoint
             var integrationEventListenerConfig = BuildIntegrationEventListenerConfig();
 
             var endpoint = await Endpoint.Start(config);
+            // ReSharper disable once UnusedVariable
             var integrationEndpoint = await Endpoint.Start(integrationEventListenerConfig);
             
             Console.WriteLine("Press <enter> to send a message the endpoint.");

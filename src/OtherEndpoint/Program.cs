@@ -31,6 +31,7 @@ namespace OtherEndpoint
             config.Recoverability().Delayed(d => d.NumberOfRetries(0));
             config.UseSerialization<JsonSerializer>();
 
+            // ReSharper disable once UnusedVariable
             var integrationEndpoint = await Endpoint.Start(BuildIntegrationEventListenerConfig());
 
             var endpoint = await Endpoint.Start(config);
