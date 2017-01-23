@@ -19,12 +19,11 @@ namespace ServiceControl.TransportAdapter
         ILog logger = LogManager.GetLogger(typeof(ServiceControlTransportAdapter<,>));
 
         string baseName;
-        readonly IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
+        IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
         Action<TransportExtensions<TFront>> userTransportCustomization;
         EndpointCollection endpoints;
         IRawEndpointInstance inputForwarder;
         IRawEndpointInstance outputForwarder;
-        static Action<TransportExtensions<TFront>> emptyCustomization = t => { };
 
         public ServiceControlTransportAdapter(string baseName, 
             IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
@@ -32,7 +31,7 @@ namespace ServiceControl.TransportAdapter
         {
             this.baseName = baseName;
             this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
-            this.userTransportCustomization = userTransportCustomization ?? emptyCustomization;
+            this.userTransportCustomization = userTransportCustomization ?? (t => { });
         }
 
         public async Task Start()
@@ -109,7 +108,7 @@ namespace ServiceControl.TransportAdapter
         {
             var destination = context.Headers[TargetAddressHeader];
 
-            logger.Info($"Forwarding a retry message to {destination}");
+            logger.Debug($"Forwarding a retry message to {destination}");
 
             context.Headers.Remove(TargetAddressHeader);
 
@@ -118,20 +117,20 @@ namespace ServiceControl.TransportAdapter
 
         Task OnControlMessage(MessageContext context)
         {
-            logger.Info($"Forwarding a control message.");
+            logger.Debug($"Forwarding a control message.");
             return Forward(context, inputForwarder, "Particular.ServiceControl");
         }
 
         Task OnErrorMessage(MessageContext context)
         {
             context.Headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
-            logger.Info($"Forwarding an error message.");
+            logger.Debug($"Forwarding an error message.");
             return Forward(context, inputForwarder, "error");
         }
 
         Task OnAuditMessage(MessageContext context)
         {
-            logger.Info($"Forwarding an audit message.");
+            logger.Debug($"Forwarding an audit message.");
             return Forward(context, inputForwarder, "audit");
         }
 
