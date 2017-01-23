@@ -63,9 +63,10 @@ namespace OtherEndpoint
         }
     }
 
-    class HeartbeatHandler : 
+    class IntegrationHandler : 
         IHandleMessages<HeartbeatStopped>,
-        IHandleMessages<HeartbeatRestored>
+        IHandleMessages<HeartbeatRestored>,
+        IHandleMessages<MessageFailed>
     {
         public Task Handle(HeartbeatStopped message, IMessageHandlerContext context)
         {
@@ -78,6 +79,12 @@ namespace OtherEndpoint
             Console.WriteLine($"Endpoint {message.EndpointName} resumed sending heartbeats.");
             return Task.FromResult(0);
 
+        }
+
+        public Task Handle(MessageFailed message, IMessageHandlerContext context)
+        {
+            Console.WriteLine($"Messafe {message.FailedMessageId} failed processing at endpoint {message.ProcessingEndpoint.Name}.");
+            return Task.FromResult(0);
         }
     }
 
