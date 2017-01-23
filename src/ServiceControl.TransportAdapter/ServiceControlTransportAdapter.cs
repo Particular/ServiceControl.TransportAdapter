@@ -97,7 +97,7 @@ namespace ServiceControl.TransportAdapter
 
         Task OnIntegrationMessage(MessageContext context)
         {
-            logger.Info($"Forwarding a integration message.");
+            logger.Info("Forwarding a integration message.");
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var destinations = integrationEventPublishingStrategy.GetDestinations(context.Headers);
             var operations = destinations.Select(d => new TransportOperation(message, d)).ToArray();
@@ -117,20 +117,20 @@ namespace ServiceControl.TransportAdapter
 
         Task OnControlMessage(MessageContext context)
         {
-            logger.Debug($"Forwarding a control message.");
+            logger.Debug("Forwarding a control message.");
             return Forward(context, inputForwarder, "Particular.ServiceControl");
         }
 
         Task OnErrorMessage(MessageContext context)
         {
             context.Headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
-            logger.Debug($"Forwarding an error message.");
+            logger.Debug("Forwarding an error message.");
             return Forward(context, inputForwarder, "error");
         }
 
         Task OnAuditMessage(MessageContext context)
         {
-            logger.Debug($"Forwarding an audit message.");
+            logger.Debug("Forwarding an audit message.");
             return Forward(context, inputForwarder, "audit");
         }
 
