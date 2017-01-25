@@ -5,6 +5,8 @@ using ServiceControl.TransportAdapter;
 
 namespace ServiceControl.RabbitMQ
 {
+    using TransportAdapter = TransportAdapter.TransportAdapter;
+
     class Program
     {
         static void Main(string[] args)
@@ -15,11 +17,14 @@ namespace ServiceControl.RabbitMQ
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("ServiceControl.RabbitMQ", InitializeTransport);
+            var adapterConfig = new TransportAdapterConfig<RabbitMQTransport, MsmqTransport>("ServiceControl.RabbitMQ");
+            adapterConfig.CustomizeFrontendTransport(InitializeTransport);
 
-            adapter.ConfigureIntegrationEventForwarding(
+            adapterConfig.ConfigureIntegrationEventForwarding(
                 new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint.IntegrationListener"),
                 new UnicastIntegrationEventSubscribingStrategy());
+
+            var adapter = TransportAdapter.Create(adapterConfig);
 
             await adapter.Start();
 
