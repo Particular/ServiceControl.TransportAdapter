@@ -3,11 +3,14 @@
 Allows to use different transports for the busienss endpoints and ServiceControl. The adapter code should live along the business endpoint code. Here's how to configure an adapter:
 
 ```
-var adapter = new ServiceControlTransportAdapter<RabbitMQTransport, MsmqTransport>("ServiceControl.RabbitMQ", InitializeTransport);
+var adapterConfig = new TransportAdapterConfig<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer");
+adapterConfig.CustomizeFrontendTransport(InitializeSqlTransport);
 
-adapter.ConfigureIntegrationEventForwarding(
-    new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint.IntegrationListener"),
+adapterConfig.ConfigureIntegrationEventForwarding(
+    new UnicastIntegrationEventPublishingStrategy("OtherEndpoint.IntegrationListener"),
     new UnicastIntegrationEventSubscribingStrategy());
+
+var adapter = TransportAdapter.Create(adapterConfig);
 
 await adapter.Start();
 
