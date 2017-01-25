@@ -56,6 +56,7 @@
             };
             scFake.Retry(message);
 
+            // ReSharper disable once UnusedVariable
             var retry = await Wait(retriedSignal.Task);
             Assert.Pass("Retry processed");
         }
