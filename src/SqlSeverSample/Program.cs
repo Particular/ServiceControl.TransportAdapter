@@ -9,6 +9,8 @@ using ServiceControl.TransportAdapter;
 
 namespace ServiceControl.SqlServer
 {
+    using TransportAdapter = TransportAdapter.TransportAdapter;
+
     class Program
     {
         static void Main(string[] args)
@@ -19,10 +21,14 @@ namespace ServiceControl.SqlServer
 
         static async Task AsyncMain()
         {
-            var adapter = new ServiceControlTransportAdapter<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer", InitializeSqlTransport);
-            adapter.ConfigureIntegrationEventForwarding(
+            var adapterConfig = new TransportAdapterConfig<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer");
+            adapterConfig.CustomizeFrontendTransport(InitializeSqlTransport);
+
+            adapterConfig.ConfigureIntegrationEventForwarding(
                 new UnicastIntegrationEventPublishingStrategy("OtherEndpoint.IntegrationListener"),
                 new UnicastIntegrationEventSubscribingStrategy());
+
+            var adapter = TransportAdapter.Create(adapterConfig);
 
             await adapter.Start();
 

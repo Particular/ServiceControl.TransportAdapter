@@ -18,64 +18,79 @@ namespace ServiceControl.TransportAdapter
 
         ILog logger = LogManager.GetLogger(typeof(ServiceControlTransportAdapter<,>));
 
-        string baseName;
+        string adapterName;
+        string frontendControlQueue;
+        string backendControlQueue;
+        string fontendAuditQueue;
+        string backendAuditQueue;
+        string frontendErrorQueue;
+        string backendErrorQueue;
         IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
         IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy;
-        Action<TransportExtensions<TFront>> userTransportCustomization;
+        Action<TransportExtensions<TFront>> frontendTransportCustomization;
+        Action<TransportExtensions<TBack>> backendTransportCustomization;
         EndpointCollection endpoints;
         IReceivingRawEndpoint inputForwarder;
         IReceivingRawEndpoint outputForwarder;
         IReceivingRawEndpoint integrationEndpoint;
+        string poisonMessageQueueName;
 
-        public ServiceControlTransportAdapter(string baseName, Action<TransportExtensions<TFront>> userTransportCustomization = null)
+        internal ServiceControlTransportAdapter(string adapterName,
+            string frontendControlQueue,
+            string backendControlQueue,
+            string fontendAuditQueue,
+            string backendAuditQueue,
+            string frontendErrorQueue,
+            string backendErrorQueue,
+            string poisonMessageQueueName,
+            Action<TransportExtensions<TFront>> frontendTransportCustomization,
+            Action<TransportExtensions<TBack>> backendTransportCustomization,
+            IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
+            IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
         {
-            this.baseName = baseName;
-            this.userTransportCustomization = userTransportCustomization ?? (t => { });
-        }
-
-        public void ConfigureIntegrationEventForwarding(IIntegrationEventPublishingStrategy integrationEventPublishingStrategy, IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
-        {
-            if (integrationEventPublishingStrategy == null)
-            {
-                throw new ArgumentNullException(nameof(integrationEventPublishingStrategy));
-            }
-            if (integrationEventSubscribingStrategy == null)
-            {
-                throw new ArgumentNullException(nameof(integrationEventSubscribingStrategy));
-            }
+            this.adapterName = adapterName;
+            this.frontendControlQueue = frontendControlQueue;
+            this.backendControlQueue = backendControlQueue;
+            this.fontendAuditQueue = fontendAuditQueue;
+            this.backendAuditQueue = backendAuditQueue;
+            this.frontendErrorQueue = frontendErrorQueue;
+            this.backendErrorQueue = backendErrorQueue;
+            this.frontendTransportCustomization = frontendTransportCustomization;
+            this.backendTransportCustomization = backendTransportCustomization;
             this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
             this.integrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
+            this.poisonMessageQueueName = poisonMessageQueueName;
         }
 
         public async Task Start()
         {
-            var inputForwarderConfig = ConfigureRetryEndpoint(RawEndpointConfiguration.CreateSendOnly($"{baseName}.FrontendForwarder"));
+            var inputForwarderConfig = ConfigureRetryEndpoint(RawEndpointConfiguration.CreateSendOnly($"{adapterName}.FrontendForwarder"));
             inputForwarder = await RawEndpoint.Start(inputForwarderConfig).ConfigureAwait(false);
 
-            var outputForwarderConfig = ConfigureFrontendTransport(RawEndpointConfiguration.CreateSendOnly($"{baseName}.BackendForwarder"));
+            var outputForwarderConfig = ConfigureFrontendTransport(RawEndpointConfiguration.CreateSendOnly($"{adapterName}.BackendForwarder"));
             outputForwarder = await RawEndpoint.Start(outputForwarderConfig).ConfigureAwait(false);
 
-            var poisonMessageQueue = "poison";
             endpoints = new EndpointCollection(
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("audit", (context, _) => OnAuditMessage(context), poisonMessageQueue)),
-                ConfigureFrontendTransport(RawEndpointConfiguration.Create("error", (context, _) => OnErrorMessage(context), poisonMessageQueue)),
-                ConfigureControlEndpoint(RawEndpointConfiguration.Create("Particular.ServiceControl", (context, _) => OnControlMessage(context), poisonMessageQueue)),
-                ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{baseName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueue))
+                ConfigureFrontendTransport(RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context), poisonMessageQueueName)),
+                ConfigureFrontendTransport(RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context), poisonMessageQueueName)),
+                ConfigureControlEndpoint(RawEndpointConfiguration.Create(frontendControlQueue, (context, _) => OnControlMessage(context), poisonMessageQueueName)),
+                ConfigureRetryEndpoint(RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName))
                 );
             await endpoints.Start().ConfigureAwait(false);
 
             if (integrationEventSubscribingStrategy != null)
             {
-                var integrationEndpointConfig = ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{baseName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueue));
+                var integrationEndpointConfig = ConfigureIntegrationEndpoint(RawEndpointConfiguration.Create($"{adapterName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueueName));
                 integrationEndpoint = await RawEndpoint.Start(integrationEndpointConfig).ConfigureAwait(false);
-                await integrationEventSubscribingStrategy.EnsureSubscribed(integrationEndpoint, "Particular.ServiceControl").ConfigureAwait(false);
+                await integrationEventSubscribingStrategy.EnsureSubscribed(integrationEndpoint, backendControlQueue).ConfigureAwait(false);
             }
         }
 
         RawEndpointConfiguration ConfigureRetryEndpoint(RawEndpointConfiguration config)
         {
-            config.CustomErrorHandlingPolicy(new RetryForwarderErrorPolicy(baseName, "error"));
-            config.UseTransport<TBack>();
+            config.CustomErrorHandlingPolicy(new RetryForwarderErrorPolicy(adapterName, backendErrorQueue));
+            var transport = config.UseTransport<TBack>();
+            backendTransportCustomization(transport);
             config.AutoCreateQueue();
             return config;
         }
@@ -83,7 +98,8 @@ namespace ServiceControl.TransportAdapter
         RawEndpointConfiguration ConfigureIntegrationEndpoint(RawEndpointConfiguration config)
         {
             config.CustomErrorHandlingPolicy(new BestEffortPolicy());
-            config.UseTransport<TBack>();
+            var transport = config.UseTransport<TBack>();
+            backendTransportCustomization(transport);
             config.AutoCreateQueue();
             return config;
         }
@@ -92,7 +108,7 @@ namespace ServiceControl.TransportAdapter
         {
             config.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var extensions = config.UseTransport<TFront>();
-            userTransportCustomization(extensions);
+            frontendTransportCustomization(extensions);
             config.AutoCreateQueue();
             return config;
         }
@@ -101,7 +117,7 @@ namespace ServiceControl.TransportAdapter
         {
             config.CustomErrorHandlingPolicy(new BestEffortPolicy());
             var extensions = config.UseTransport<TFront>();
-            userTransportCustomization(extensions);
+            frontendTransportCustomization(extensions);
             config.AutoCreateQueue();
             return config;
         }
@@ -141,20 +157,20 @@ namespace ServiceControl.TransportAdapter
         Task OnControlMessage(MessageContext context)
         {
             logger.Debug("Forwarding a control message.");
-            return Forward(context, inputForwarder, "Particular.ServiceControl");
+            return Forward(context, inputForwarder, backendControlQueue);
         }
 
         Task OnErrorMessage(MessageContext context)
         {
-            context.Headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
+            context.Headers["ServiceControl.RetryTo"] = $"{adapterName}.Retry";
             logger.Debug("Forwarding an error message.");
-            return Forward(context, inputForwarder, "error");
+            return Forward(context, inputForwarder, backendErrorQueue);
         }
 
         Task OnAuditMessage(MessageContext context)
         {
             logger.Debug("Forwarding an audit message.");
-            return Forward(context, inputForwarder, "audit");
+            return Forward(context, inputForwarder, backendAuditQueue);
         }
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
@@ -194,7 +210,7 @@ namespace ServiceControl.TransportAdapter
                 this.baseName = baseName;
                 this.errorQueue = errorQueue;
             }
-            
+
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 if (handlingContext.Error.ImmediateProcessingFailures < 5)
@@ -204,10 +220,14 @@ namespace ServiceControl.TransportAdapter
                 var headers = handlingContext.Error.Message.Headers;
 
                 //Will show as if failure occured in the original failure queue.
-                var destination = headers["ServiceControl.TargetEndpointAddress"];
-                headers.Remove("ServiceControl.TargetEndpointAddress");
+
+                string destination;
+                if (headers.TryGetValue("ServiceControl.TargetEndpointAddress", out destination))
+                {
+                    headers[FaultsHeaderKeys.FailedQ] = destination;
+                    headers.Remove("ServiceControl.TargetEndpointAddress");
+                }
                 headers["ServiceControl.RetryTo"] = $"{baseName}.Retry";
-                headers[FaultsHeaderKeys.FailedQ] = destination;
                 return handlingContext.MoveToErrorQueue(errorQueue, false);
             }
         }
