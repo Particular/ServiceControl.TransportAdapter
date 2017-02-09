@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;

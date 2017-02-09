@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Features;
+    using Infrastructure;
     using NServiceBus;
     using NServiceBus.Features;
     using NServiceBus.Transport;

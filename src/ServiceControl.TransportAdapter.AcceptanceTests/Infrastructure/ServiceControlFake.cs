@@ -1,4 +1,4 @@
-﻿namespace ServiceControl.TransportAdapter.AcceptanceTests
+﻿namespace ServiceControl.TransportAdapter.AcceptanceTests.Infrastructure
 {
     using System;
     using System.Threading.Tasks;

@@ -58,14 +58,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AcceptanceTestBase.cs" />
+    <Compile Include="Infrastructure\AcceptanceTestBase.cs" />
     <Compile Include="ControlForwarding.cs" />
-    <Compile Include="EndpointCustomizationConfigurationExtensions.cs" />
+    <Compile Include="Infrastructure\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="AuditForwarding.cs" />
     <Compile Include="RetryForwarding.cs" />
     <Compile Include="ErrorForwarding.cs" />
-    <Compile Include="ServiceControlFake.cs" />
-    <Compile Include="TypesToScanExtensions.cs" />
+    <Compile Include="Infrastructure\ServiceControlFake.cs" />
+    <Compile Include="Infrastructure\TypesToScanExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

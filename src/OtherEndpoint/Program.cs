@@ -7,6 +7,9 @@ using ServiceControl.Contracts;
 
 namespace OtherEndpoint
 {
+    /// <summary>
+    /// This endpoint uses a different database than the SC adapter.
+    /// </summary>
     class Program
     {
         static void Main(string[] args)

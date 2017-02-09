@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using ConnectionManager;
 using NServiceBus;
 using NServiceBus.Transport.SQLServer;
 
 namespace SomeEndpoint
 {
+    /// <summary>
+    /// This endpoint uses the same database as the SC adapter but has a custom schema "nsb"
+    /// </summary>
     class Program
     {
         static void Main(string[] args)
@@ -19,8 +21,8 @@ namespace SomeEndpoint
             var config = new EndpointConfiguration("SomeEndpoint");
 
             var transport = config.UseTransport<SqlServerTransport>();
-            transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Some;Integrated Security=True");
-            transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
+            transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True");
+            transport.UseSchemaForEndpoint("SomeEndpoint", "nsb");
 
             config.UsePersistence<InMemoryPersistence>();
             config.SendFailedMessagesTo("error");

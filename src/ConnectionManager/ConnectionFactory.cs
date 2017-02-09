@@ -5,9 +5,8 @@ namespace ConnectionManager
 {
     public class ConnectionFactory
     {
-        static string SomeEndpoint = @"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Some;Integrated Security=True";
         static string OtherEndpoint = @"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True";
-        static string ServiceControl = @"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True";
+        static string AdapterEndpoint = @"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True";
 
         public static async Task<SqlConnection> GetConnection(string destination)
         {
@@ -25,13 +24,13 @@ namespace ConnectionManager
         {
             if (destination.StartsWith("SomeEndpoint"))
             {
-                return SomeEndpoint;
+                return AdapterEndpoint;
             }
             if (destination.StartsWith("OtherEndpoint"))
             {
                 return OtherEndpoint;
             }
-            return ServiceControl;
+            return AdapterEndpoint;
         }
     }
 }
