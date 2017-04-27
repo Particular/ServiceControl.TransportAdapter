@@ -34,6 +34,9 @@ namespace ServiceControl.TransportAdapter
         IReceivingRawEndpoint outputForwarder;
         IReceivingRawEndpoint integrationEndpoint;
         string poisonMessageQueueName;
+        int controlMessageImmediateRetries;
+        int integrationMessageImmediateRetries;
+        int retryMessageImmeidateRetries;
 
         internal ServiceControlTransportAdapter(string adapterName,
             string frontendControlQueue,
@@ -43,6 +46,9 @@ namespace ServiceControl.TransportAdapter
             string frontendErrorQueue,
             string backendErrorQueue,
             string poisonMessageQueueName,
+            int controlMessageImmediateRetries,
+            int integrationMessageImmediateRetries,
+            int retryMessageImmeidateRetries,
             Action<TransportExtensions<TFront>> frontendTransportCustomization,
             Action<TransportExtensions<TBack>> backendTransportCustomization,
             IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
@@ -60,6 +66,9 @@ namespace ServiceControl.TransportAdapter
             this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
             this.integrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
             this.poisonMessageQueueName = poisonMessageQueueName;
+            this.controlMessageImmediateRetries = controlMessageImmediateRetries;
+            this.integrationMessageImmediateRetries = integrationMessageImmediateRetries;
+            this.retryMessageImmeidateRetries = retryMessageImmeidateRetries;
         }
 
         public async Task Start()
@@ -88,7 +97,7 @@ namespace ServiceControl.TransportAdapter
 
         RawEndpointConfiguration ConfigureRetryEndpoint(RawEndpointConfiguration config)
         {
-            config.CustomErrorHandlingPolicy(new RetryForwarderErrorPolicy(adapterName, backendErrorQueue));
+            config.CustomErrorHandlingPolicy(new RetryForwarderErrorPolicy(adapterName, backendErrorQueue, retryMessageImmeidateRetries));
             var transport = config.UseTransport<TBack>();
             backendTransportCustomization(transport);
             config.AutoCreateQueue();
@@ -97,7 +106,7 @@ namespace ServiceControl.TransportAdapter
 
         RawEndpointConfiguration ConfigureIntegrationEndpoint(RawEndpointConfiguration config)
         {
-            config.CustomErrorHandlingPolicy(new BestEffortPolicy());
+            config.CustomErrorHandlingPolicy(new BestEffortPolicy(integrationMessageImmediateRetries));
             var transport = config.UseTransport<TBack>();
             backendTransportCustomization(transport);
             config.AutoCreateQueue();
@@ -115,7 +124,7 @@ namespace ServiceControl.TransportAdapter
 
         RawEndpointConfiguration ConfigureControlEndpoint(RawEndpointConfiguration config)
         {
-            config.CustomErrorHandlingPolicy(new BestEffortPolicy());
+            config.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
             var extensions = config.UseTransport<TFront>();
             frontendTransportCustomization(extensions);
             config.AutoCreateQueue();
@@ -136,7 +145,7 @@ namespace ServiceControl.TransportAdapter
 
         Task OnIntegrationMessage(MessageContext context)
         {
-            logger.Info("Forwarding a integration message.");
+            logger.Debug("Forwarding a integration message.");
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var destinations = integrationEventPublishingStrategy.GetDestinations(context.Headers);
             var operations = destinations.Select(d => new TransportOperation(message, d)).ToArray();
@@ -190,9 +199,16 @@ namespace ServiceControl.TransportAdapter
 
         class BestEffortPolicy : IErrorHandlingPolicy
         {
+            int maxFailures;
+
+            public BestEffortPolicy(int maxFailures)
+            {
+                this.maxFailures = maxFailures;
+            }
+
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
-                if (handlingContext.Error.ImmediateProcessingFailures < 5)
+                if (handlingContext.Error.ImmediateProcessingFailures < maxFailures)
                 {
                     return Task.FromResult(ErrorHandleResult.RetryRequired);
                 }
@@ -204,23 +220,24 @@ namespace ServiceControl.TransportAdapter
         {
             string baseName;
             string errorQueue;
+            int retries;
 
-            public RetryForwarderErrorPolicy(string baseName, string errorQueue)
+            public RetryForwarderErrorPolicy(string baseName, string errorQueue, int retries)
             {
                 this.baseName = baseName;
                 this.errorQueue = errorQueue;
+                this.retries = retries;
             }
 
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
-                if (handlingContext.Error.ImmediateProcessingFailures < 5)
+                if (handlingContext.Error.ImmediateProcessingFailures < retries)
                 {
                     return Task.FromResult(ErrorHandleResult.RetryRequired);
                 }
                 var headers = handlingContext.Error.Message.Headers;
 
                 //Will show as if failure occured in the original failure queue.
-
                 string destination;
                 if (headers.TryGetValue("ServiceControl.TargetEndpointAddress", out destination))
                 {

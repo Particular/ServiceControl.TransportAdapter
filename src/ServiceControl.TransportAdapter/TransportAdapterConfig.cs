@@ -23,6 +23,10 @@
         public string FrontendServiceControlQueue { get; set; } = "Particular.ServiceControl";
         public string BackendServiceControlQueue { get; set; } = "Particular.ServiceControl";
 
+        public int ControlForwardingImmediateRetries { get; set; } = 5;
+        public int IntegrationForwardingImmediateRetries { get; set; } = 5;
+        public int RetryForwardingImmediateRetries { get; set; } = 5;
+
         public TransportAdapterConfig(string name)
         {
             this.Name = name;
