@@ -31,16 +31,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NServiceBus.AcceptanceTesting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.AcceptanceTesting.6.3.0-alpha0080\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.1.2\lib\net452\NServiceBus.Core.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.6.3.0-alpha0080\lib\net452\NServiceBus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NServiceBus.Raw, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.Raw.0.2.0\lib\net452\NServiceBus.Raw.dll</HintPath>
+    <Reference Include="NServiceBus.Raw, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NServiceBus.Raw.0.2.1\lib\net452\NServiceBus.Raw.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework, Version=3.6.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.6.0\lib\net45\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=3.6.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\NUnit.3.6.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceControl.Plugin.Nsb6.Heartbeat, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -48,8 +52,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Messaging" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,12 +64,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConfigureEndpointInMemoryPersistence.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConfigureEndpointMsmqTransport.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConventionEnforcementTests.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\DeterministicGuid.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\ConfigureExtensions.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\DefaultPublisher.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\DefaultServer.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\EndpointConfigurationExtensions.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\IConfigureEndpointTestExecution.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\NServiceBusAcceptanceTest.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ScenarioDescriptors\EnvironmentHelper.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ScenarioDescriptors\TypeScanner.cs" />
     <Compile Include="Infrastructure\AcceptanceTestBase.cs" />
-    <Compile Include="ControlForwarding.cs" />
     <Compile Include="Infrastructure\EndpointCustomizationConfigurationExtensions.cs" />
-    <Compile Include="AuditForwarding.cs" />
+    <Compile Include="Infrastructure\AdapterComponent.cs" />
+    <Compile Include="ControlForwarding.cs" />
     <Compile Include="RetryForwarding.cs" />
     <Compile Include="ErrorForwarding.cs" />
+    <Compile Include="AuditForwarding.cs" />
+    <Compile Include="Infrastructure\IServiceControl.cs" />
+    <Compile Include="Infrastructure\ServiceControlFakeComponent.cs" />
     <Compile Include="Infrastructure\ServiceControlFake.cs" />
     <Compile Include="Infrastructure\TypesToScanExtensions.cs" />
   </ItemGroup>

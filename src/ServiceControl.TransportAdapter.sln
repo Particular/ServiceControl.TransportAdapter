@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.TransportAdapter", "ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj", "{9B891C3B-8051-4BB5-9257-6A954CF908C3}"
 EndProject
@@ -21,7 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RabbitMQ", "RabbitMQ", "{F0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YetAnotherEndpoint", "YetAnotherEndpoint\YetAnotherEndpoint.csproj", "{EF48172D-73E5-4598-84F4-6E5F5C37889D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.TransportAdapter.AcceptanceTests", "ServiceControl.TransportAdapter.AcceptanceTests\ServiceControl.TransportAdapter.AcceptanceTests.csproj", "{95B821CD-36ED-419D-93B5-42490F9D2D76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "AcceptanceTests\AcceptanceTests.csproj", "{95B821CD-36ED-419D-93B5-42490F9D2D76}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

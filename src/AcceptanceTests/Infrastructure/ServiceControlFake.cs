@@ -45,7 +45,7 @@
             mainEndpoint = await Endpoint.Start(inputProcessorConfig).ConfigureAwait(false);
         }
 
-        public void Retry(IncomingMessage message)
+        public Task Retry(IncomingMessage message)
         {
             //Mimics the behavior of ReturnToSenderDequeuer
             var destination = message.Headers[FaultsHeaderKeys.FailedQ];
@@ -58,7 +58,7 @@
                 message.Headers.Remove("ServiceControl.TargetEndpointAddress");
             }
             var operations = new TransportOperation(new OutgoingMessage(message.MessageId, message.Headers, message.Body), new UnicastAddressTag(retryTo));
-            errorProcessor.Dispatch(new TransportOperations(operations), new TransportTransaction(), new ContextBag());
+            return errorProcessor.Dispatch(new TransportOperations(operations), new TransportTransaction(), new ContextBag());
         }
 
         public async Task Stop()

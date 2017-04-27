@@ -41,8 +41,10 @@ namespace ServiceControl.SqlServer
         static void InitializeSqlTransport(TransportExtensions<SqlServerTransport> transport)
         {
             transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter;Integrated Security=True");
-            transport.GetSettings().Set<EndpointInstances>(new EndpointInstances());
+
             transport.EnableLegacyMultiInstanceMode(ConnectionFactory.GetConnection);
+            //SQLServer expects this.
+            transport.GetSettings().Set<EndpointInstances>(new EndpointInstances());
         }
     }
 }
