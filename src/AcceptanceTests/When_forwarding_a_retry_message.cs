@@ -6,13 +6,13 @@ using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
 
 [TestFixture]
-public class RetryForwarding : NServiceBusAcceptanceTest
+public class When_forwarding_a_retry_message : NServiceBusAcceptanceTest
 {
     [Test]
     public async Task It_forwards_retry_messages()
     {
         var result = await Scenario.Define<Context>()
-            .WithEndpoint<AuditEndpoint>(c => c.When(s => s.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
+            .WithEndpoint<FautyEndpoint>(c => c.When(s => s.SendLocal(new MyMessage())).DoNotFailOnErrorMessages())
             .WithComponent(new AdapterComponent())
             .WithComponent(new ServiceControlFakeComponent<Context>(onError: (m, c, sc) =>
             {
@@ -30,9 +30,9 @@ public class RetryForwarding : NServiceBusAcceptanceTest
         public bool RetryForwarded { get; set; }
     }
 
-    public class AuditEndpoint : EndpointConfigurationBuilder
+    public class FautyEndpoint : EndpointConfigurationBuilder
     {
-        public AuditEndpoint()
+        public FautyEndpoint()
         {
             EndpointSetup<DefaultServer>(c =>
             {

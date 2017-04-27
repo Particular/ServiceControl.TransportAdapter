@@ -81,10 +81,11 @@
     <Compile Include="Infrastructure\AcceptanceTestBase.cs" />
     <Compile Include="Infrastructure\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="Infrastructure\AdapterComponent.cs" />
-    <Compile Include="ControlForwarding.cs" />
-    <Compile Include="RetryForwarding.cs" />
-    <Compile Include="ErrorForwarding.cs" />
-    <Compile Include="AuditForwarding.cs" />
+    <Compile Include="When_forwarding_a_control_message.cs" />
+    <Compile Include="When_retry_forwarding_fails.cs" />
+    <Compile Include="When_forwarding_a_retry_message.cs" />
+    <Compile Include="When_forwarding_a_failed_message.cs" />
+    <Compile Include="When_forwarding_an_audit_message.cs" />
     <Compile Include="Infrastructure\IServiceControl.cs" />
     <Compile Include="Infrastructure\ServiceControlFakeComponent.cs" />
     <Compile Include="Infrastructure\ServiceControlFake.cs" />

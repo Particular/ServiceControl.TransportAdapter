@@ -6,13 +6,13 @@ using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
 
 [TestFixture]
-public class ControlForwarding : NServiceBusAcceptanceTest
+public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
 {
     [Test]
     public async Task It_forwards_control_messages()
     {
         var result = await Scenario.Define<Context>()
-            .WithEndpoint<AuditEndpoint>()
+            .WithEndpoint<HeartbeatingEndpoint>()
             .WithComponent(new AdapterComponent())
             .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) => { c.ControlForwarded = true; }))
             .Done(c => c.ControlForwarded)
@@ -26,9 +26,9 @@ public class ControlForwarding : NServiceBusAcceptanceTest
         public bool ControlForwarded { get; set; }
     }
 
-    public class AuditEndpoint : EndpointConfigurationBuilder
+    public class HeartbeatingEndpoint : EndpointConfigurationBuilder
     {
-        public AuditEndpoint()
+        public HeartbeatingEndpoint()
         {
             EndpointSetup<DefaultServer>(c =>
             {

@@ -6,7 +6,7 @@ using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
 
 [TestFixture]
-public class AuditForwarding : NServiceBusAcceptanceTest
+public class When_forwarding_an_audit_message : NServiceBusAcceptanceTest
 {
     [Test]
     public async Task It_forwards_audit_messages()

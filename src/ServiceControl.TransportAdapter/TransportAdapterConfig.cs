@@ -9,8 +9,8 @@
         where TBack : TransportDefinition, new()
     {
         internal string Name { get; }
-        internal IIntegrationEventPublishingStrategy IntegrationEventPublishingStrategy { get; private set; }
-        internal IIntegrationEventSubscribingStrategy IntegrationEventSubscribingStrategy { get; private set; }
+        internal IIntegrationEventPublishingStrategy IntegrationEventPublishingStrategy { get; private set; } = new NullIntegrationEventPublishingStrategy();
+        internal IIntegrationEventSubscribingStrategy IntegrationEventSubscribingStrategy { get; private set; } = new NullIntegrationEventSubscribingStrategy();
 
         internal Action<TransportExtensions<TFront>> FrontendTransportCustomization { get; private set; } = e => { };
         internal Action<TransportExtensions<TBack>> BackendTransportCustomization { get; private set; }= e => { };

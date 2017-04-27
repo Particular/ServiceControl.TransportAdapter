@@ -64,11 +64,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EndpointCollection.cs" />
+    <Compile Include="AuditForwarder.cs" />
+    <Compile Include="ControlForwarder.cs" />
     <Compile Include="IIntegrationEventPublishingStrategy.cs" />
     <Compile Include="IIntegrationEventSubscribingStrategy.cs" />
     <Compile Include="NativeIntegrationEventPublishingStrategy.cs" />
     <Compile Include="NativeIntegrationEventSubscribingStrategy.cs" />
+    <Compile Include="NullIntegrationEventPublishingStrategy.cs" />
+    <Compile Include="NullIntegrationEventSubscribingStrategy.cs" />
+    <Compile Include="RetryForwarder.cs" />
     <Compile Include="ServiceControlTransportAdapter.cs" />
     <Compile Include="TransportAdapterConfig.cs" />
     <Compile Include="TransportAdapter.cs" />
