@@ -54,12 +54,12 @@
         {
             var adapterConfig = new TransportAdapterConfig<MsmqTransport, MsmqTransport>("SCTA.ErrorForwarding.Adapter")
             {
-                FronendErrorQueue = "SCTA.error-front",
-                BackendErrorQueue = "SCTA.error-back",
-                FrontendAuditQueue = "SCTA.audit-front",
-                BackendAuditQueue = "SCTA.audit-back",
-                FrontendServiceControlQueue = "SCTA.control-front",
-                BackendServiceControlQueue = "SCTA.control-back"
+                EndpointSideErrorQueue = "SCTA.error-front",
+                ServiceControlSideErrorQueue = "SCTA.error-back",
+                EndpointSideAuditQueue = "SCTA.audit-front",
+                ServiceControlSideAuditQueue = "SCTA.audit-back",
+                EndpointSideControlQueue = "SCTA.control-front",
+                ServiceControlSideControlQueue = "SCTA.control-back"
             };
             return adapterConfig;
         }

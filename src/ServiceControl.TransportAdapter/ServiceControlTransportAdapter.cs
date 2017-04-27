@@ -3,7 +3,7 @@ using NServiceBus.Transport;
 
 namespace ServiceControl.TransportAdapter
 {
-    public class ServiceControlTransportAdapter<TFront, TBack>
+    class ServiceControlTransportAdapter<TFront, TBack> : ITransportAdapter
         where TFront : TransportDefinition, new()
         where TBack : TransportDefinition, new()
     {

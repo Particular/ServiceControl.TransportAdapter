@@ -22,7 +22,7 @@ namespace ServiceControl.SqlServer
         static async Task AsyncMain()
         {
             var adapterConfig = new TransportAdapterConfig<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer");
-            adapterConfig.CustomizeFrontendTransport(InitializeSqlTransport);
+            adapterConfig.CustomizeEndpointSideTransport(InitializeSqlTransport);
 
             adapterConfig.ConfigureIntegrationEventForwarding(
                 new UnicastIntegrationEventPublishingStrategy("OtherEndpoint.IntegrationListener"),

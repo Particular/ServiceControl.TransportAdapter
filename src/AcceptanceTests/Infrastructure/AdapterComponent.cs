@@ -10,9 +10,9 @@ class AdapterComponent : IComponentBehavior
     {
         var config = new TransportAdapterConfig<MsmqTransport, MsmqTransport>("Adapter")
         {
-            BackendErrorQueue = "Error.Back",
-            BackendAuditQueue = "Audit.Back",
-            BackendServiceControlQueue = "Particular.ServiceControl.Back"
+            ServiceControlSideErrorQueue = "Error.Back",
+            ServiceControlSideAuditQueue = "Audit.Back",
+            ServiceControlSideControlQueue = "Particular.ServiceControl.Back"
         };
 
         var adapter = TransportAdapter.Create(config);
@@ -22,9 +22,9 @@ class AdapterComponent : IComponentBehavior
 
     class Runner : ComponentRunner
     {
-        ServiceControlTransportAdapter<MsmqTransport, MsmqTransport> adapter;
+        ITransportAdapter adapter;
 
-        public Runner(ServiceControlTransportAdapter<MsmqTransport, MsmqTransport> adapter)
+        public Runner(ITransportAdapter adapter)
         {
             this.adapter = adapter;
         }
