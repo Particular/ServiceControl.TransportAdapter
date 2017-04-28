@@ -67,19 +67,11 @@
   <ItemGroup>
     <Compile Include="AuditForwarder.cs" />
     <Compile Include="ControlForwarder.cs" />
-    <Compile Include="IIntegrationEventPublishingStrategy.cs" />
-    <Compile Include="IIntegrationEventSubscribingStrategy.cs" />
     <Compile Include="ITransportAdapter.cs" />
-    <Compile Include="NativeIntegrationEventPublishingStrategy.cs" />
-    <Compile Include="NativeIntegrationEventSubscribingStrategy.cs" />
-    <Compile Include="NullIntegrationEventPublishingStrategy.cs" />
-    <Compile Include="NullIntegrationEventSubscribingStrategy.cs" />
     <Compile Include="FailedMessageForwarder.cs" />
     <Compile Include="ServiceControlTransportAdapter.cs" />
     <Compile Include="TransportAdapterConfig.cs" />
     <Compile Include="TransportAdapter.cs" />
-    <Compile Include="UnicastIntegrationEventPublishingStrategy.cs" />
-    <Compile Include="UnicastIntegrationEventSubscribingStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -18,8 +18,7 @@ namespace ServiceControl.TransportAdapter
                 config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization);
 
             var controlMessageForwarder = new ControlForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideControlQueue, config.ServiceControlSideControlQueue,
-                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries,
-                config.IntegrationForwardingImmediateRetries, config.IntegrationEventPublishingStrategy, config.IntegrationEventSubscribingStrategy ?? new NullIntegrationEventSubscribingStrategy());
+                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries);
 
             var auditForwarder = new AuditForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideAuditQueue, config.ServiceControlSideAuditQueue, config.PoisonMessageQueue,
                 config.FrontendTransportCustomization, config.BackendTransportCustomization);

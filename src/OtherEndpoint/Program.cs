@@ -57,8 +57,7 @@ namespace OtherEndpoint
             config.Conventions().DefiningEventsAs(t => t.Namespace == "ServiceControl.Contracts" ||
                                                                                (typeof(IEvent).IsAssignableFrom(t) && typeof(IEvent) != t));
 
-            var transport = config.UseTransport<SqlServerTransport>();
-            transport.ConnectionString(@"Data Source=.\SQLEXPRESS;Initial Catalog=SCAdapter_Other;Integrated Security=True");
+            config.UseTransport<MsmqTransport>();
             config.Recoverability()
                 .CustomPolicy((recoverabilityConfig, context) => RecoverabilityAction.MoveToError("poison"));
             config.UseSerialization<JsonSerializer>();

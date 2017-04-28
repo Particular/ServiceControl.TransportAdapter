@@ -52,8 +52,7 @@ namespace YetAnotherEndpoint
             config.Conventions().DefiningEventsAs(t => t.Namespace == "ServiceControl.Contracts" ||
                                                                                (typeof(IEvent).IsAssignableFrom(t) && typeof(IEvent) != t));
 
-            var transport = config.UseTransport<RabbitMQTransport>();
-            transport.ConnectionString("host=localhost");
+            config.UseTransport<MsmqTransport>();
 
             config.Recoverability()
                 .CustomPolicy((recoverabilityConfig, context) => RecoverabilityAction.MoveToError("poison"));

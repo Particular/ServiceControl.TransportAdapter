@@ -23,8 +23,6 @@
         }
 
         internal string Name { get; }
-        internal IIntegrationEventPublishingStrategy IntegrationEventPublishingStrategy { get; private set; } = new NullIntegrationEventPublishingStrategy();
-        internal IIntegrationEventSubscribingStrategy IntegrationEventSubscribingStrategy { get; private set; } = new NullIntegrationEventSubscribingStrategy();
 
         internal Action<TransportExtensions<TENdpoint>> FrontendTransportCustomization { get; private set; } = e => { };
         internal Action<TransportExtensions<TServiceControl>> BackendTransportCustomization { get; private set; } = e => { };
@@ -105,25 +103,6 @@
                 throw new ArgumentNullException(nameof(customization));
             }
             BackendTransportCustomization = customization;
-        }
-
-        /// <summary>
-        /// Enables ServiceControl integration event forwarding using provided pub/sub strategies.
-        /// </summary>
-        /// <param name="integrationEventPublishingStrategy">Publishing strategy.</param>
-        /// <param name="integrationEventSubscribingStrategy">Subscribing strategy.</param>
-        public void ConfigureIntegrationEventForwarding(IIntegrationEventPublishingStrategy integrationEventPublishingStrategy, IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
-        {
-            if (integrationEventPublishingStrategy == null)
-            {
-                throw new ArgumentNullException(nameof(integrationEventPublishingStrategy));
-            }
-            if (integrationEventSubscribingStrategy == null)
-            {
-                throw new ArgumentNullException(nameof(integrationEventSubscribingStrategy));
-            }
-            IntegrationEventPublishingStrategy = integrationEventPublishingStrategy;
-            IntegrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
         }
     }
 }

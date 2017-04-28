@@ -47,11 +47,8 @@
 
         public async Task Stop()
         {
-            var stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
-            var stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
-
-            await stoppedFronEnd.Stop().ConfigureAwait(false);
-            await stoppedBackEnd.Stop().ConfigureAwait(false);
+            await frontEnd.Stop().ConfigureAwait(false);
+            await backEnd.Stop().ConfigureAwait(false);
         }
 
         RawEndpointConfiguration backEndConfig;

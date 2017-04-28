@@ -23,11 +23,6 @@ namespace ServiceControl.SqlServer
         {
             var adapterConfig = new TransportAdapterConfig<SqlServerTransport, MsmqTransport>("ServiceControl.SqlServer");
             adapterConfig.CustomizeEndpointTransport(InitializeSqlTransport);
-
-            adapterConfig.ConfigureIntegrationEventForwarding(
-                new UnicastIntegrationEventPublishingStrategy("OtherEndpoint.IntegrationListener"),
-                new UnicastIntegrationEventSubscribingStrategy());
-
             var adapter = TransportAdapter.Create(adapterConfig);
 
             await adapter.Start();

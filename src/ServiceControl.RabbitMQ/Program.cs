@@ -19,11 +19,6 @@ namespace ServiceControl.RabbitMQ
         {
             var adapterConfig = new TransportAdapterConfig<RabbitMQTransport, MsmqTransport>("ServiceControl.RabbitMQ");
             adapterConfig.CustomizeEndpointTransport(InitializeTransport);
-
-            adapterConfig.ConfigureIntegrationEventForwarding(
-                new UnicastIntegrationEventPublishingStrategy("YetAnotherEndpoint.IntegrationListener"),
-                new UnicastIntegrationEventSubscribingStrategy());
-
             var adapter = TransportAdapter.Create(adapterConfig);
 
             await adapter.Start();

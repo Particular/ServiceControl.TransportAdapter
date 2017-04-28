@@ -1,7 +1,6 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -15,13 +14,8 @@
     {
         public ControlForwarder(string adapterName, string frontendControlQueue, string backendControlQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
-            int controlMessageImmediateRetries, int integrationMessageImmediateRetries,
-            IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
-            IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
+            int controlMessageImmediateRetries)
         {
-            this.backendControlQueue = backendControlQueue;
-            this.integrationEventPublishingStrategy = integrationEventPublishingStrategy;
-            this.integrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
             frontEndConfig = RawEndpointConfiguration.Create(frontendControlQueue, (context, _) => OnControlMessage(context, backendControlQueue), poisonMessageQueueName);
 
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
@@ -29,49 +23,28 @@
             frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
 
-            backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueueName);
-            backEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(integrationMessageImmediateRetries));
+            backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
         }
-
-        Task OnIntegrationMessage(MessageContext context)
-        {
-            logger.Debug("Forwarding a integration message.");
-            var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
-            var destinations = integrationEventPublishingStrategy.GetDestinations(context.Headers);
-            var operations = destinations.Select(d => new TransportOperation(message, d)).ToArray();
-            return frontEndDispatcher.Dispatch(new TransportOperations(operations), context.TransportTransaction, context.Context);
-        }
-
+        
         Task OnControlMessage(MessageContext context, string backendControlQueue)
         {
             logger.Debug("Forwarding a control message.");
-            return Forward(context, backEndDispatcher, backendControlQueue);
+            return Forward(context, backEnd, backendControlQueue);
         }
 
         public async Task Start()
         {
-            var initializedFrontEnd = await RawEndpoint.Create(frontEndConfig).ConfigureAwait(false);
-            var initializedBackEnd = await RawEndpoint.Create(backEndConfig).ConfigureAwait(false);
-
-            frontEndDispatcher = initializedFrontEnd;
-            backEndDispatcher = initializedBackEnd;
-
-            frontEnd = await initializedFrontEnd.Start().ConfigureAwait(false);
-            backEnd = await initializedBackEnd.Start().ConfigureAwait(false);
-
-            await integrationEventSubscribingStrategy.EnsureSubscribed(backEnd, backendControlQueue).ConfigureAwait(false);
+            backEnd = await RawEndpoint.Start(backEndConfig).ConfigureAwait(false);
+            frontEnd = await RawEndpoint.Start(frontEndConfig).ConfigureAwait(false);
         }
 
         public async Task Stop()
         {
-            var stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
-            var stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
-
-            await stoppedFronEnd.Stop().ConfigureAwait(false);
-            await stoppedBackEnd.Stop().ConfigureAwait(false);
+            await frontEnd.Stop().ConfigureAwait(false);
+            await backEnd.Stop().ConfigureAwait(false);
         }
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
@@ -81,16 +54,10 @@
             return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
         }
 
-        string backendControlQueue;
-        IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
-        IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy;
-
         RawEndpointConfiguration backEndConfig;
         RawEndpointConfiguration frontEndConfig;
 
-        IDispatchMessages backEndDispatcher;
         IReceivingRawEndpoint backEnd;
-        IDispatchMessages frontEndDispatcher;
         IReceivingRawEndpoint frontEnd;
         static ILog logger = LogManager.GetLogger(typeof(ControlForwarder<,>));
 
