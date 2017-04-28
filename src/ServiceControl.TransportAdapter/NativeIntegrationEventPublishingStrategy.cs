@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using NServiceBus.Routing;
-
-namespace ServiceControl.TransportAdapter
+﻿namespace ServiceControl.TransportAdapter
 {
+    using System;
+    using System.Collections.Generic;
+    using NServiceBus.Routing;
+
     class NativeIntegrationEventPublishingStrategy : IIntegrationEventPublishingStrategy
     {
         public IEnumerable<AddressTag> GetDestinations(Dictionary<string, string> headers)

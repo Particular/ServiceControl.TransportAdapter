@@ -9,23 +9,11 @@ namespace ServiceControl.TransportAdapter
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
-    class FailedMessageForwarder<TFront, TBack> 
+    class FailedMessageForwarder<TFront, TBack>
         where TBack : TransportDefinition, new()
         where TFront : TransportDefinition, new()
     {
-        static ILog logger = LogManager.GetLogger(typeof(FailedMessageForwarder<,>));
-        const string TargetAddressHeader = "ServiceControl.TargetEndpointAddress";
-
-        string retryToAddress;
-        RawEndpointConfiguration backEndConfig;
-        RawEndpointConfiguration frontEndConfig;
-
-        IDispatchMessages backEndDispatcher;
-        IReceivingRawEndpoint backEnd;
-        IDispatchMessages frontEndDispatcher;
-        IReceivingRawEndpoint frontEnd;
-
-        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName, 
+        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName,
             Action<TransportExtensions<TFront>> frontendTransportCustomization,
             Action<TransportExtensions<TBack>> backendTransportCustomization)
         {
@@ -78,7 +66,7 @@ namespace ServiceControl.TransportAdapter
             retryToAddress = initializedBackEnd.TransportAddress;
 
             frontEnd = await initializedFrontEnd.Start().ConfigureAwait(false);
-            backEnd =  await initializedBackEnd.Start().ConfigureAwait(false);
+            backEnd = await initializedBackEnd.Start().ConfigureAwait(false);
         }
 
         public async Task Stop()
@@ -90,6 +78,17 @@ namespace ServiceControl.TransportAdapter
             await stoppedBackEnd.Stop().ConfigureAwait(false);
         }
 
+        string retryToAddress;
+        RawEndpointConfiguration backEndConfig;
+        RawEndpointConfiguration frontEndConfig;
+
+        IDispatchMessages backEndDispatcher;
+        IReceivingRawEndpoint backEnd;
+        IDispatchMessages frontEndDispatcher;
+        IReceivingRawEndpoint frontEnd;
+        const string TargetAddressHeader = "ServiceControl.TargetEndpointAddress";
+        static ILog logger = LogManager.GetLogger(typeof(FailedMessageForwarder<,>));
+
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
         {
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
@@ -100,10 +99,6 @@ namespace ServiceControl.TransportAdapter
 
         class RetryForwardingFailurePolicy : IErrorHandlingPolicy
         {
-            string errorQueue;
-            int retries;
-            Func<string> retryTo;
-
             public RetryForwardingFailurePolicy(string errorQueue, int retries, Func<string> retryTo)
             {
                 this.errorQueue = errorQueue;
@@ -129,6 +124,10 @@ namespace ServiceControl.TransportAdapter
                 headers["ServiceControl.RetryTo"] = retryTo();
                 return handlingContext.MoveToErrorQueue(errorQueue, false);
             }
+
+            string errorQueue;
+            int retries;
+            Func<string> retryTo;
         }
     }
 }

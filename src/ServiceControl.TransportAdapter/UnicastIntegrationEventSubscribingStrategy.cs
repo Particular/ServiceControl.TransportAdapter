@@ -3,6 +3,7 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Contracts;
     using NServiceBus;
     using NServiceBus.Extensibility;
     using NServiceBus.Logging;
@@ -14,15 +15,6 @@
 
     public class UnicastIntegrationEventSubscribingStrategy : IIntegrationEventSubscribingStrategy
     {
-        static string[] messageTypes =
-        {
-            typeof(Contracts.MessageFailed).AssemblyQualifiedName,
-            typeof(Contracts.CustomCheckFailed).AssemblyQualifiedName,
-            typeof(Contracts.CustomCheckSucceeded).AssemblyQualifiedName,
-            typeof(Contracts.HeartbeatRestored).AssemblyQualifiedName,
-            typeof(Contracts.HeartbeatStopped).AssemblyQualifiedName,
-        };
-
         public Task EnsureSubscribed(IRawEndpoint integrationEventSubscriber, string serviceControlInputQueue)
         {
             var subscribeTasks = messageTypes.Select(t => SendMessage(integrationEventSubscriber, t, serviceControlInputQueue, new ContextBag(), MessageIntentEnum.Subscribe));
@@ -58,6 +50,15 @@
                 throw new QueueNotFoundException(destination, message, ex);
             }
         }
+
+        static string[] messageTypes =
+        {
+            typeof(MessageFailed).AssemblyQualifiedName,
+            typeof(CustomCheckFailed).AssemblyQualifiedName,
+            typeof(CustomCheckSucceeded).AssemblyQualifiedName,
+            typeof(HeartbeatRestored).AssemblyQualifiedName,
+            typeof(HeartbeatStopped).AssemblyQualifiedName
+        };
 
         static ILog Logger = LogManager.GetLogger(typeof(UnicastIntegrationEventSubscribingStrategy));
     }

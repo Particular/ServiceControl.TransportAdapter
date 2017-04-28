@@ -3,21 +3,13 @@
     using System;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Contracts;
     using NServiceBus.Extensibility;
     using NServiceBus.Raw;
     using NServiceBus.Transport;
 
     public class NativeIntegrationEventSubscribingStrategy : IIntegrationEventSubscribingStrategy
     {
-        static Type[] messageTypes =
-        {
-            typeof(Contracts.MessageFailed),
-            typeof(Contracts.CustomCheckFailed),
-            typeof(Contracts.CustomCheckSucceeded),
-            typeof(Contracts.HeartbeatRestored),
-            typeof(Contracts.HeartbeatStopped),
-        };
-
         public async Task EnsureSubscribed(IRawEndpoint integrationEventSubscriber, string serviceControlInputQueue)
         {
             var transportInfrastructure = integrationEventSubscriber.Settings.Get<TransportInfrastructure>();
@@ -32,5 +24,14 @@
                 await subscriptionManager.Subscribe(messageType, new ContextBag()).ConfigureAwait(false);
             }
         }
+
+        static Type[] messageTypes =
+        {
+            typeof(MessageFailed),
+            typeof(CustomCheckFailed),
+            typeof(CustomCheckSucceeded),
+            typeof(HeartbeatRestored),
+            typeof(HeartbeatStopped)
+        };
     }
 }

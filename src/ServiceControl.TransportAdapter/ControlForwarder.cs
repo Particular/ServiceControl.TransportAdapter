@@ -13,20 +13,6 @@
         where TFront : TransportDefinition, new()
         where TBack : TransportDefinition, new()
     {
-        static ILog logger = LogManager.GetLogger(typeof(ControlForwarder<,>));
-
-        string backendControlQueue;
-        IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
-        IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy;
-
-        RawEndpointConfiguration backEndConfig;
-        RawEndpointConfiguration frontEndConfig;
-
-        IDispatchMessages backEndDispatcher;
-        IReceivingRawEndpoint backEnd;
-        IDispatchMessages frontEndDispatcher;
-        IReceivingRawEndpoint frontEnd;
-
         public ControlForwarder(string adapterName, string frontendControlQueue, string backendControlQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TFront>> frontendTransportCustomization, Action<TransportExtensions<TBack>> backendTransportCustomization,
             int controlMessageImmediateRetries, int integrationMessageImmediateRetries,
@@ -95,10 +81,21 @@
             return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
         }
 
+        string backendControlQueue;
+        IIntegrationEventPublishingStrategy integrationEventPublishingStrategy;
+        IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy;
+
+        RawEndpointConfiguration backEndConfig;
+        RawEndpointConfiguration frontEndConfig;
+
+        IDispatchMessages backEndDispatcher;
+        IReceivingRawEndpoint backEnd;
+        IDispatchMessages frontEndDispatcher;
+        IReceivingRawEndpoint frontEnd;
+        static ILog logger = LogManager.GetLogger(typeof(ControlForwarder<,>));
+
         class BestEffortPolicy : IErrorHandlingPolicy
         {
-            int maxFailures;
-
             public BestEffortPolicy(int maxFailures)
             {
                 this.maxFailures = maxFailures;
@@ -112,6 +109,8 @@
                 }
                 return Task.FromResult(ErrorHandleResult.Handled); //Ignore this message
             }
+
+            int maxFailures;
         }
     }
 }

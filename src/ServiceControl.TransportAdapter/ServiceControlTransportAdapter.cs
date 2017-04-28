@@ -1,19 +1,15 @@
-﻿using System.Threading.Tasks;
-using NServiceBus.Transport;
-
-namespace ServiceControl.TransportAdapter
+﻿namespace ServiceControl.TransportAdapter
 {
+    using System.Threading.Tasks;
+    using NServiceBus.Transport;
+
     class ServiceControlTransportAdapter<TFront, TBack> : ITransportAdapter
         where TFront : TransportDefinition, new()
         where TBack : TransportDefinition, new()
     {
-        AuditForwarder<TFront, TBack> auditForwarder;
-        FailedMessageForwarder<TFront, TBack> failedMessageForwarder;
-        ControlForwarder<TFront, TBack> controlMessageForwarder;
-
         internal ServiceControlTransportAdapter(
             FailedMessageForwarder<TFront, TBack> failedMessageForwarder,
-            ControlForwarder<TFront, TBack> controlMessageForwarder, 
+            ControlForwarder<TFront, TBack> controlMessageForwarder,
             AuditForwarder<TFront, TBack> auditForwarder)
         {
             this.failedMessageForwarder = failedMessageForwarder;
@@ -34,5 +30,9 @@ namespace ServiceControl.TransportAdapter
             await failedMessageForwarder.Stop().ConfigureAwait(false);
             await auditForwarder.Stop().ConfigureAwait(false);
         }
+
+        AuditForwarder<TFront, TBack> auditForwarder;
+        FailedMessageForwarder<TFront, TBack> failedMessageForwarder;
+        ControlForwarder<TFront, TBack> controlMessageForwarder;
     }
 }

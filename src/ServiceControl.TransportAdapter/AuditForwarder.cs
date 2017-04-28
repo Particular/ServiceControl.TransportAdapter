@@ -12,14 +12,6 @@
         where TFront : TransportDefinition, new()
         where TBack : TransportDefinition, new()
     {
-        static ILog logger = LogManager.GetLogger(typeof(AuditForwarder<,>));
-
-        RawEndpointConfiguration backEndConfig;
-        RawEndpointConfiguration frontEndConfig;
-
-        IReceivingRawEndpoint backEnd;
-        IReceivingRawEndpoint frontEnd;
-
         public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TFront>> frontendTransportCustomization, Action<TransportExtensions<TBack>> backendTransportCustomization)
         {
@@ -33,6 +25,7 @@
             var backEndTransport = backEndConfig.UseTransport<TBack>();
             backendTransportCustomization(backEndTransport);
         }
+
         Task OnAuditMessage(MessageContext context, string backendAuditQueue)
         {
             logger.Debug("Forwarding an audit message.");
@@ -60,6 +53,13 @@
             await stoppedFronEnd.Stop().ConfigureAwait(false);
             await stoppedBackEnd.Stop().ConfigureAwait(false);
         }
+
+        RawEndpointConfiguration backEndConfig;
+        RawEndpointConfiguration frontEndConfig;
+
+        IReceivingRawEndpoint backEnd;
+        IReceivingRawEndpoint frontEnd;
+        static ILog logger = LogManager.GetLogger(typeof(AuditForwarder<,>));
 
         class RetryForeverPolicy : IErrorHandlingPolicy
         {

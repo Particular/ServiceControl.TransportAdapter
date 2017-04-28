@@ -13,12 +13,21 @@
         where TFront : TransportDefinition, new()
         where TBack : TransportDefinition, new()
     {
+        /// <summary>
+        /// Creates a new configuration object.
+        /// </summary>
+        /// <param name="name">Name of the adapter. Used as a prefix for adapter's own queues.</param>
+        public TransportAdapterConfig(string name)
+        {
+            Name = name;
+        }
+
         internal string Name { get; }
         internal IIntegrationEventPublishingStrategy IntegrationEventPublishingStrategy { get; private set; } = new NullIntegrationEventPublishingStrategy();
         internal IIntegrationEventSubscribingStrategy IntegrationEventSubscribingStrategy { get; private set; } = new NullIntegrationEventSubscribingStrategy();
 
         internal Action<TransportExtensions<TFront>> FrontendTransportCustomization { get; private set; } = e => { };
-        internal Action<TransportExtensions<TBack>> BackendTransportCustomization { get; private set; }= e => { };
+        internal Action<TransportExtensions<TBack>> BackendTransportCustomization { get; private set; } = e => { };
 
         /// <summary>
         /// Gets or sets the endpoint-side error queue -- the error queue configured in the endpoints. Defaults to error.
@@ -46,12 +55,14 @@
         public string PoisonMessageQueue { get; set; } = "poison";
 
         /// <summary>
-        /// Gets or sets the endpoint-side control queue -- the control queue configured in the endpoints. Defaults to Particular.ServiceControl.
+        /// Gets or sets the endpoint-side control queue -- the control queue configured in the endpoints. Defaults to
+        /// Particular.ServiceControl.
         /// </summary>
         public string EndpointSideControlQueue { get; set; } = "Particular.ServiceControl";
 
         /// <summary>
-        /// Gets or sets the ServiceControl-side control queue -- the ServiceControl input queue. Defaults to Particular.ServiceControl.
+        /// Gets or sets the ServiceControl-side control queue -- the ServiceControl input queue. Defaults to
+        /// Particular.ServiceControl.
         /// </summary>
         public string ServiceControlSideControlQueue { get; set; } = "Particular.ServiceControl";
 
@@ -69,15 +80,6 @@
         /// Gets or sets the number of immediate retries to be used when forwarding retry messages.
         /// </summary>
         public int RetryForwardingImmediateRetries { get; set; } = 5;
-
-        /// <summary>
-        /// Creates a new configuration object.
-        /// </summary>
-        /// <param name="name">Name of the adapter. Used as a prefix for adapter's own queues.</param>
-        public TransportAdapterConfig(string name)
-        {
-            Name = name;
-        }
 
         /// <summary>
         /// Use provied callback to customize the endpoint-side transport.
@@ -120,8 +122,8 @@
             {
                 throw new ArgumentNullException(nameof(integrationEventSubscribingStrategy));
             }
-            this.IntegrationEventPublishingStrategy = integrationEventPublishingStrategy;
-            this.IntegrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
+            IntegrationEventPublishingStrategy = integrationEventPublishingStrategy;
+            IntegrationEventSubscribingStrategy = integrationEventSubscribingStrategy;
         }
     }
 }

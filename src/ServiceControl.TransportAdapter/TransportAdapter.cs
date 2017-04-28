@@ -14,14 +14,14 @@ namespace ServiceControl.TransportAdapter
             where TFront : TransportDefinition, new()
             where TBack : TransportDefinition, new()
         {
-            var failedMessageForwarder = new FailedMessageForwarder<TFront, TBack>(config.Name, config.EndpointSideErrorQueue, config.ServiceControlSideErrorQueue, 
+            var failedMessageForwarder = new FailedMessageForwarder<TFront, TBack>(config.Name, config.EndpointSideErrorQueue, config.ServiceControlSideErrorQueue,
                 config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization);
 
             var controlMessageForwarder = new ControlForwarder<TFront, TBack>(config.Name, config.EndpointSideControlQueue, config.ServiceControlSideControlQueue,
-                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries, 
+                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries,
                 config.IntegrationForwardingImmediateRetries, config.IntegrationEventPublishingStrategy, config.IntegrationEventSubscribingStrategy ?? new NullIntegrationEventSubscribingStrategy());
 
-            var auditForwarder = new AuditForwarder<TFront, TBack>(config.Name, config.EndpointSideAuditQueue, config.ServiceControlSideAuditQueue, config.PoisonMessageQueue, 
+            var auditForwarder = new AuditForwarder<TFront, TBack>(config.Name, config.EndpointSideAuditQueue, config.ServiceControlSideAuditQueue, config.PoisonMessageQueue,
                 config.FrontendTransportCustomization, config.BackendTransportCustomization);
 
             return new ServiceControlTransportAdapter<TFront, TBack>(failedMessageForwarder, controlMessageForwarder, auditForwarder);
