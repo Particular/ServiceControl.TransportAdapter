@@ -9,30 +9,30 @@ namespace ServiceControl.TransportAdapter
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
-    class FailedMessageForwarder<TFront, TBack>
-        where TBack : TransportDefinition, new()
-        where TFront : TransportDefinition, new()
+    class FailedMessageForwarder<TEndpoint, TServiceControl>
+        where TServiceControl : TransportDefinition, new()
+        where TEndpoint : TransportDefinition, new()
     {
         public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName,
-            Action<TransportExtensions<TFront>> frontendTransportCustomization,
-            Action<TransportExtensions<TBack>> backendTransportCustomization)
+            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization,
+            Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
         {
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
             backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
-            var backEndTransport = backEndConfig.UseTransport<TBack>();
+            var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
 
             frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
-            var frontEndTransport = frontEndConfig.UseTransport<TFront>();
+            var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
         }
 
         Task OnErrorMessage(MessageContext context, string backendErrorQueue)
         {
-            context.Headers["ServiceControl.RetryTo"] = retryToAddress;
+            context.Headers[RetrytoHeader] = retryToAddress;
             logger.Debug("Forwarding an error message.");
             return Forward(context, backEndDispatcher, backendErrorQueue);
         }
@@ -87,6 +87,7 @@ namespace ServiceControl.TransportAdapter
         IDispatchMessages frontEndDispatcher;
         IReceivingRawEndpoint frontEnd;
         const string TargetAddressHeader = "ServiceControl.TargetEndpointAddress";
+        const string RetrytoHeader = "ServiceControl.RetryTo";
         static ILog logger = LogManager.GetLogger(typeof(FailedMessageForwarder<,>));
 
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
@@ -121,7 +122,7 @@ namespace ServiceControl.TransportAdapter
                     headers[FaultsHeaderKeys.FailedQ] = destination;
                     headers.Remove(TargetAddressHeader);
                 }
-                headers["ServiceControl.RetryTo"] = retryTo();
+                headers[RetrytoHeader] = retryTo();
                 return handlingContext.MoveToErrorQueue(errorQueue, false);
             }
 

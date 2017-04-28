@@ -9,12 +9,12 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
-    class ControlForwarder<TFront, TBack>
-        where TFront : TransportDefinition, new()
-        where TBack : TransportDefinition, new()
+    class ControlForwarder<TEndpoint, TServiceControl>
+        where TEndpoint : TransportDefinition, new()
+        where TServiceControl : TransportDefinition, new()
     {
         public ControlForwarder(string adapterName, string frontendControlQueue, string backendControlQueue, string poisonMessageQueueName,
-            Action<TransportExtensions<TFront>> frontendTransportCustomization, Action<TransportExtensions<TBack>> backendTransportCustomization,
+            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
             int controlMessageImmediateRetries, int integrationMessageImmediateRetries,
             IIntegrationEventPublishingStrategy integrationEventPublishingStrategy,
             IIntegrationEventSubscribingStrategy integrationEventSubscribingStrategy)
@@ -25,13 +25,13 @@
             frontEndConfig = RawEndpointConfiguration.Create(frontendControlQueue, (context, _) => OnControlMessage(context, backendControlQueue), poisonMessageQueueName);
 
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
-            var frontEndTransport = frontEndConfig.UseTransport<TFront>();
+            var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Integration", (context, _) => OnIntegrationMessage(context), poisonMessageQueueName);
             backEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(integrationMessageImmediateRetries));
-            var backEndTransport = backEndConfig.UseTransport<TBack>();
+            var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
         }

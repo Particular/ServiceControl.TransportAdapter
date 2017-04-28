@@ -7,11 +7,11 @@
     /// <summary>
     /// Configures the ServiceControl transport adapter.
     /// </summary>
-    /// <typeparam name="TFront">Endpoints' transport.</typeparam>
-    /// <typeparam name="TBack">ServiceControl transport.</typeparam>
-    public class TransportAdapterConfig<TFront, TBack>
-        where TFront : TransportDefinition, new()
-        where TBack : TransportDefinition, new()
+    /// <typeparam name="TENdpoint">Endpoints' transport.</typeparam>
+    /// <typeparam name="TServiceControl">ServiceControl transport.</typeparam>
+    public class TransportAdapterConfig<TENdpoint, TServiceControl>
+        where TENdpoint : TransportDefinition, new()
+        where TServiceControl : TransportDefinition, new()
     {
         /// <summary>
         /// Creates a new configuration object.
@@ -26,8 +26,8 @@
         internal IIntegrationEventPublishingStrategy IntegrationEventPublishingStrategy { get; private set; } = new NullIntegrationEventPublishingStrategy();
         internal IIntegrationEventSubscribingStrategy IntegrationEventSubscribingStrategy { get; private set; } = new NullIntegrationEventSubscribingStrategy();
 
-        internal Action<TransportExtensions<TFront>> FrontendTransportCustomization { get; private set; } = e => { };
-        internal Action<TransportExtensions<TBack>> BackendTransportCustomization { get; private set; } = e => { };
+        internal Action<TransportExtensions<TENdpoint>> FrontendTransportCustomization { get; private set; } = e => { };
+        internal Action<TransportExtensions<TServiceControl>> BackendTransportCustomization { get; private set; } = e => { };
 
         /// <summary>
         /// Gets or sets the endpoint-side error queue -- the error queue configured in the endpoints. Defaults to error.
@@ -85,7 +85,7 @@
         /// Use provied callback to customize the endpoint-side transport.
         /// </summary>
         /// <param name="customization">Customization function.</param>
-        public void CustomizeEndpointTransport(Action<TransportExtensions<TFront>> customization)
+        public void CustomizeEndpointTransport(Action<TransportExtensions<TENdpoint>> customization)
         {
             if (customization == null)
             {
@@ -98,7 +98,7 @@
         /// Use provided callback to customize the ServiceControl-side transport.
         /// </summary>
         /// <param name="customization">Customization function.</param>
-        public void CustomizeServiceControlTransport(Action<TransportExtensions<TBack>> customization)
+        public void CustomizeServiceControlTransport(Action<TransportExtensions<TServiceControl>> customization)
         {
             if (customization == null)
             {

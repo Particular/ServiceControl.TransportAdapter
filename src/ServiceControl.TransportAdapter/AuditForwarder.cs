@@ -8,21 +8,21 @@
     using NServiceBus.Routing;
     using NServiceBus.Transport;
 
-    class AuditForwarder<TFront, TBack>
-        where TFront : TransportDefinition, new()
-        where TBack : TransportDefinition, new()
+    class AuditForwarder<TEndpoint, TServiceControl>
+        where TEndpoint : TransportDefinition, new()
+        where TServiceControl : TransportDefinition, new()
     {
         public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
-            Action<TransportExtensions<TFront>> frontendTransportCustomization, Action<TransportExtensions<TBack>> backendTransportCustomization)
+            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
         {
             frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
-            var extensions = frontEndConfig.UseTransport<TFront>();
+            var extensions = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(extensions);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
-            var backEndTransport = backEndConfig.UseTransport<TBack>();
+            var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
         }
 

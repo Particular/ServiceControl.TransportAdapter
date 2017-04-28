@@ -3,14 +3,14 @@
     using System.Threading.Tasks;
     using NServiceBus.Transport;
 
-    class ServiceControlTransportAdapter<TFront, TBack> : ITransportAdapter
-        where TFront : TransportDefinition, new()
-        where TBack : TransportDefinition, new()
+    class ServiceControlTransportAdapter<TEndpoint, TServiceControl> : ITransportAdapter
+        where TEndpoint : TransportDefinition, new()
+        where TServiceControl : TransportDefinition, new()
     {
         internal ServiceControlTransportAdapter(
-            FailedMessageForwarder<TFront, TBack> failedMessageForwarder,
-            ControlForwarder<TFront, TBack> controlMessageForwarder,
-            AuditForwarder<TFront, TBack> auditForwarder)
+            FailedMessageForwarder<TEndpoint, TServiceControl> failedMessageForwarder,
+            ControlForwarder<TEndpoint, TServiceControl> controlMessageForwarder,
+            AuditForwarder<TEndpoint, TServiceControl> auditForwarder)
         {
             this.failedMessageForwarder = failedMessageForwarder;
             this.controlMessageForwarder = controlMessageForwarder;
@@ -31,8 +31,8 @@
             await auditForwarder.Stop().ConfigureAwait(false);
         }
 
-        AuditForwarder<TFront, TBack> auditForwarder;
-        FailedMessageForwarder<TFront, TBack> failedMessageForwarder;
-        ControlForwarder<TFront, TBack> controlMessageForwarder;
+        AuditForwarder<TEndpoint, TServiceControl> auditForwarder;
+        FailedMessageForwarder<TEndpoint, TServiceControl> failedMessageForwarder;
+        ControlForwarder<TEndpoint, TServiceControl> controlMessageForwarder;
     }
 }
