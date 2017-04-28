@@ -83,7 +83,7 @@
         /// Use provied callback to customize the endpoint-side transport.
         /// </summary>
         /// <param name="customization">Customization function.</param>
-        public void CustomizeEndpointSideTransport(Action<TransportExtensions<TFront>> customization)
+        public void CustomizeEndpointTransport(Action<TransportExtensions<TFront>> customization)
         {
             if (customization == null)
             {
