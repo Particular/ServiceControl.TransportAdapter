@@ -2,26 +2,19 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>ServiceControl.TransportAdapter</id>
-    <title>ServiceControl.TransportAdapter</title>
     <version>$version$</version>
-    <authors>Szymon Pobiega</authors>
-    <owners>SzymonPobiega</owners>    
-    <projectUrl>https://github.com/SzymonPobiega/ServiceControl.TransportAdapter</projectUrl>
-	<licenseUrl>https://github.com/SzymonPobiega/ServiceControl.TransportAdapter/blob/master/LICENSE.md</licenseUrl>
+    <title>ServiceControl.TransportAdapter</title>
+    <authors>$authors$</authors>
+    <owners>$owners$</owners>    
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$></projectUrl>
     <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
-    <description>Adapter allowing connect service control with a different transport than the endpoints use</description>
-    <releaseNotes></releaseNotes>
-    <copyright>Copyright 2017 Szymon Pobiega</copyright>
-    <tags>nservicebus servicecontrol transport</tags>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System" targetFramework="net452" />
-      <frameworkAssembly assemblyName="System.Core" targetFramework="net452" />
-    </frameworkAssemblies>
+    <iconUrl>$iconUrl$</iconUrl>
+    <description>Adapter for connecting ServiceControl with a different transport than the endpoints use</description>
+    <tags>$tags$</tags>
     <dependencies>
       <dependency id="NServiceBus" version="[6.0.0, 7.0.0)" />
-	  <dependency id="ServiceControl.Contracts" version="[1.1.1, 2.0.0)" />
-	  <dependency id="NServiceBus.Raw" version="0.2.0" />
-	  <dependency id="Metrics.NET" version="0.3.7" />
+      <dependency id="NServiceBus.Raw" version="0.2.0" />
     </dependencies>
   </metadata>
   <files>
