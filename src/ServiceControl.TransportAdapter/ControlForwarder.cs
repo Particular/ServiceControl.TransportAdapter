@@ -41,13 +41,13 @@
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug($"Forwarding a metrics report to {backendMonitoringQueue}");
+                    logger.Debug($"Forwarding the metrics report {context.MessageId} to {backendMonitoringQueue}");
                 }
                 return Forward(context, backEnd, backendMonitoringQueue, controlMessagesForwarded);
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"Forwarding a control message {messageType} to {backendControlQueue}");
+                logger.Debug($"Forwarding the control message {context.MessageId} of type {messageType} to {backendControlQueue}");
             }
             return Forward(context, backEnd, backendControlQueue, controlMessagesForwarded);
         }
@@ -98,10 +98,12 @@
             {
                 if (handlingContext.Error.ImmediateProcessingFailures < maxFailures)
                 {
+                    logger.Info($"Adapter is going to retry forwarding the control message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                     failures.Mark();
                     return Task.FromResult(ErrorHandleResult.RetryRequired);
                 }
                 dropped.Mark();
+                logger.Error($"Adapter is dropping the control message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                 return Task.FromResult(ErrorHandleResult.Handled); //Ignore this message
             }
 

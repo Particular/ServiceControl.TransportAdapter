@@ -41,19 +41,22 @@ namespace ServiceControl.TransportAdapter
 
         Task OnErrorMessage(MessageContext context, string backendErrorQueue, Meter errorsForwarded)
         {
-            context.Headers[RetrytoHeader] = retryToAddress;
-            logger.Debug("Forwarding an error message.");
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"Forwarding the failed message {context.MessageId} to {backendErrorQueue}.");
+            }
+            context.Headers[RetryToHeader] = retryToAddress;
             return Forward(context, backEndDispatcher, backendErrorQueue, errorsForwarded);
         }
 
         Task OnRetryMessage(MessageContext context, Meter retriesForwarded)
         {
             var destination = context.Headers[TargetAddressHeader];
-
-            logger.Debug($"Forwarding a retry message to {destination}");
-
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"Forwarding the retried message {context.MessageId} to {destination}.");
+            }
             context.Headers.Remove(TargetAddressHeader);
-
             return Forward(context, frontEndDispatcher, destination, retriesForwarded);
         }
 
@@ -112,7 +115,7 @@ namespace ServiceControl.TransportAdapter
         IDispatchMessages frontEndDispatcher;
         IReceivingRawEndpoint frontEnd;
         const string TargetAddressHeader = "ServiceControl.TargetEndpointAddress";
-        const string RetrytoHeader = "ServiceControl.RetryTo";
+        const string RetryToHeader = "ServiceControl.RetryTo";
         static ILog logger = LogManager.GetLogger(typeof(FailedMessageForwarder<,>));
 
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
@@ -126,6 +129,7 @@ namespace ServiceControl.TransportAdapter
 
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
+                logger.Info($"Adapter is going to retry forwarding the failed message message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                 meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
@@ -146,6 +150,7 @@ namespace ServiceControl.TransportAdapter
             {
                 if (handlingContext.Error.ImmediateProcessingFailures < retries)
                 {
+                    logger.Info($"Adapter is going to retry forwarding the retried message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                     forwardFailures.Mark();
                     return ErrorHandleResult.RetryRequired;
                 }
@@ -158,7 +163,8 @@ namespace ServiceControl.TransportAdapter
                     headers[FaultsHeaderKeys.FailedQ] = destination;
                     headers.Remove(TargetAddressHeader);
                 }
-                headers[RetrytoHeader] = retryTo();
+                headers[RetryToHeader] = retryTo();
+                logger.Error($"Adapter is going to return the retried message '{handlingContext.Error.Message.MessageId}' back to ServiceControl because of an exception:", handlingContext.Error.Exception);
                 var result = await handlingContext.MoveToErrorQueue(errorQueue, false).ConfigureAwait(false);
                 returns.Mark();
                 return result;

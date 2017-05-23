@@ -14,7 +14,13 @@ public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
         var result = await Scenario.Define<Context>()
             .WithEndpoint<HeartbeatingEndpoint>()
             .WithComponent(new AdapterComponent())
-            .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) => { c.ControlForwarded = true; }))
+            .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) =>
+            {
+                if (m.Headers[Headers.ReplyToAddress].Contains(NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(HeartbeatingEndpoint))))
+                {
+                    c.ControlForwarded = true;
+                }
+            }))
             .Done(c => c.ControlForwarded)
             .Run();
 

@@ -25,13 +25,14 @@ class AdapterComponent : IComponentBehavior
             ServiceControlSideAuditQueue = "Audit.Back",
             ServiceControlSideControlQueue = "Particular.ServiceControl.Back"
         };
-
+        ContextReport contextReport = null;
         var metricsContext = run.ScenarioContext as ScenarioContextWithMetrics;
         if (metricsContext != null)
         {
             config.MetricsConfig.WithReporting(r =>
             {
-                r.WithReport(new ContextReport(metricsContext), TimeSpan.FromSeconds(1));
+                contextReport = new ContextReport(metricsContext);
+                r.WithReport(contextReport, TimeSpan.FromSeconds(1));
             });
         }
 
@@ -39,12 +40,13 @@ class AdapterComponent : IComponentBehavior
 
         var adapter = TransportAdapter.Create(config);
 
-        return Task.FromResult<ComponentRunner>(new Runner(adapter));
+        return Task.FromResult<ComponentRunner>(new Runner(adapter, contextReport));
     }
 
     class ContextReport : MetricsReport
     {
         ScenarioContextWithMetrics metricsContext;
+        TaskCompletionSource<bool> nextReport;
 
         public ContextReport(ScenarioContextWithMetrics metricsContext)
         {
@@ -54,16 +56,25 @@ class AdapterComponent : IComponentBehavior
         public void RunReport(MetricsData metricsData, Func<HealthStatus> healthStatus, CancellationToken token)
         {
             metricsContext.MetricsData = metricsData;
+            nextReport?.SetResult(true);
+        }
+
+        public Task<bool> WaitForNextReport()
+        {
+            nextReport = new TaskCompletionSource<bool>();
+            return nextReport.Task;
         }
     }
 
     class Runner : ComponentRunner
     {
         ITransportAdapter adapter;
+        ContextReport contextReport;
 
-        public Runner(ITransportAdapter adapter)
+        public Runner(ITransportAdapter adapter, ContextReport contextReport)
         {
             this.adapter = adapter;
+            this.contextReport = contextReport;
         }
 
         public override Task Start(CancellationToken token)
@@ -71,10 +82,13 @@ class AdapterComponent : IComponentBehavior
             return adapter.Start();
         }
 
-        public override Task Stop()
+        public override async Task Stop()
         {
-            //return Task.CompletedTask;
-            return adapter.Stop();
+            if (contextReport != null)
+            {
+                await contextReport.WaitForNextReport().ConfigureAwait(false);
+            }
+            await adapter.Stop().ConfigureAwait(false);
         }
 
         public override string Name => "ServiceControl";

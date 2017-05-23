@@ -35,7 +35,7 @@
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"Forwarding an audit message {context.MessageId} to {backendAuditQueue}.");
+                logger.Debug($"Forwarding the audit message {context.MessageId} to {backendAuditQueue}.");
             }
             return Forward(context, backEnd, backendAuditQueue, meter);
         }
@@ -84,6 +84,7 @@
 
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
+                logger.Info($"Adapter is going to retry forwarding the audit message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                 meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }

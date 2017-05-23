@@ -4,6 +4,7 @@ using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTests;
 using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
+using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 [TestFixture]
 public class When_control_message_forwarding_fails : NServiceBusAcceptanceTest
@@ -14,7 +15,13 @@ public class When_control_message_forwarding_fails : NServiceBusAcceptanceTest
         var result = await Scenario.Define<Context>()
             .WithEndpoint<HeartbeatingEndpoint>()
             .WithComponent(new AdapterComponent(c => c.ServiceControlSideControlQueue = "InvalidAddress"))
-            .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) => { c.ControlForwarded = true; }))
+            .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) =>
+            {
+                if (m.Headers[Headers.ReplyToAddress].Contains(Conventions.EndpointNamingConvention(typeof(HeartbeatingEndpoint))))
+                {
+                    c.ControlForwarded = true;
+                }
+            }))
             .Done(c => c.MeterValue("Control messages dropped") > 0)
             .Run();
 
