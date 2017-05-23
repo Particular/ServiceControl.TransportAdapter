@@ -15,6 +15,7 @@
     <dependencies>
       <dependency id="NServiceBus" version="[6.0.0, 7.0.0)" />
       <dependency id="NServiceBus.Raw" version="0.2.0" />
+	  <dependency id="Metrics.NET" version="0.5.1" />
     </dependencies>
   </metadata>
   <files>

@@ -23,9 +23,10 @@ public class When_forwarding_a_retry_message : NServiceBusAcceptanceTest
             .Run();
 
         Assert.IsTrue(result.RetryForwarded);
+        Assert.AreEqual(1, result.MeterValue("Retry messages forwarded"));
     }
 
-    class Context : ScenarioContext
+    class Context : ScenarioContextWithMetrics
     {
         public bool RetryForwarded { get; set; }
     }

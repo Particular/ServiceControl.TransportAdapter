@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -13,10 +14,14 @@
         where TServiceControl : TransportDefinition, new()
     {
         public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
-            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
+            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+            MetricsContext metricsContext)
         {
-            frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
-            frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
+            var auditsForwarded = metricsContext.Meter("Audits forwarded", Unit.Custom("Messages"));
+            var auditForwardFailures = metricsContext.Meter("Audit forwarding failures", Unit.Custom("Messages"));
+
+            frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue, auditsForwarded), poisonMessageQueueName);
+            frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy(auditForwardFailures));
             var extensions = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(extensions);
             frontEndConfig.AutoCreateQueue();
@@ -26,17 +31,21 @@
             backendTransportCustomization(backEndTransport);
         }
 
-        Task OnAuditMessage(MessageContext context, string backendAuditQueue)
+        Task OnAuditMessage(MessageContext context, string backendAuditQueue, Meter meter)
         {
-            logger.Debug("Forwarding an audit message.");
-            return Forward(context, backEnd, backendAuditQueue);
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"Forwarding an audit message {context.MessageId} to {backendAuditQueue}.");
+            }
+            return Forward(context, backEnd, backendAuditQueue, meter);
         }
 
-        static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
+        static async Task Forward(MessageContext context, IDispatchMessages forwarder, string destination, Meter meter)
         {
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            await forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context).ConfigureAwait(false);
+            meter.Mark();
         }
 
         public async Task Start()
@@ -47,8 +56,14 @@
 
         public async Task Stop()
         {
-            await frontEnd.Stop().ConfigureAwait(false);
-            await backEnd.Stop().ConfigureAwait(false);
+            if (frontEnd != null)
+            {
+                await frontEnd.Stop().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                await backEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         RawEndpointConfiguration backEndConfig;
@@ -60,8 +75,16 @@
 
         class RetryForeverPolicy : IErrorHandlingPolicy
         {
+            Meter meter;
+
+            public RetryForeverPolicy(Meter meter)
+            {
+                this.meter = meter;
+            }
+
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
+                meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
         }

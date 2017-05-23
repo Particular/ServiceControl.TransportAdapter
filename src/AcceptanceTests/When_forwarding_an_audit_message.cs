@@ -19,9 +19,10 @@ public class When_forwarding_an_audit_message : NServiceBusAcceptanceTest
             .Run();
 
         Assert.IsTrue(result.AuditForwarded);
+        Assert.AreEqual(1, result.MeterValue("Audits forwarded"));
     }
 
-    class Context : ScenarioContext
+    class Context : ScenarioContextWithMetrics
     {
         public bool AuditForwarded { get; set; }
     }

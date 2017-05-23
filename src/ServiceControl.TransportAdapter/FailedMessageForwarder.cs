@@ -2,6 +2,7 @@ namespace ServiceControl.TransportAdapter
 {
     using System;
     using System.Threading.Tasks;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Faults;
     using NServiceBus.Logging;
@@ -15,29 +16,37 @@ namespace ServiceControl.TransportAdapter
     {
         public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization,
-            Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
+            Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+            MetricsContext metricsContext)
         {
-            backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
-            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
+            var errorsForwarded = metricsContext.Meter("Errors forwarded", Unit.Custom("Messages"));
+            var errorForwardFailures = metricsContext.Meter("Error forwarding failures", Unit.Custom("Messages"));
+
+            var retriesForwarded = metricsContext.Meter("Retry messages forwarded", Unit.Custom("Messages"));
+            var retryForwardFailures = metricsContext.Meter("Retry message forwarding failures", Unit.Custom("Messages"));
+            var retryReturns = metricsContext.Meter("Retry messages returned to ServiceControl", Unit.Custom("Messages"));
+
+            backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context, retriesForwarded), poisonMessageQueueName);
+            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress, retryForwardFailures, retryReturns));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
 
-            frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
-            frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
+            frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue, errorsForwarded), poisonMessageQueueName);
+            frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy(errorForwardFailures));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
         }
 
-        Task OnErrorMessage(MessageContext context, string backendErrorQueue)
+        Task OnErrorMessage(MessageContext context, string backendErrorQueue, Meter errorsForwarded)
         {
             context.Headers[RetrytoHeader] = retryToAddress;
             logger.Debug("Forwarding an error message.");
-            return Forward(context, backEndDispatcher, backendErrorQueue);
+            return Forward(context, backEndDispatcher, backendErrorQueue, errorsForwarded);
         }
 
-        Task OnRetryMessage(MessageContext context)
+        Task OnRetryMessage(MessageContext context, Meter retriesForwarded)
         {
             var destination = context.Headers[TargetAddressHeader];
 
@@ -45,14 +54,15 @@ namespace ServiceControl.TransportAdapter
 
             context.Headers.Remove(TargetAddressHeader);
 
-            return Forward(context, frontEndDispatcher, destination);
+            return Forward(context, frontEndDispatcher, destination, retriesForwarded);
         }
 
-        static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
+        static async Task Forward(MessageContext context, IDispatchMessages forwarder, string destination, Meter meter)
         {
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            await forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context).ConfigureAwait(false);
+            meter.Mark();
         }
 
         public async Task Start()
@@ -71,11 +81,26 @@ namespace ServiceControl.TransportAdapter
 
         public async Task Stop()
         {
-            var stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
-            var stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            IStoppableRawEnedpoint stoppedFronEnd = null;
+            IStoppableRawEnedpoint stoppedBackEnd = null;
 
-            await stoppedFronEnd.Stop().ConfigureAwait(false);
-            await stoppedBackEnd.Stop().ConfigureAwait(false);
+            if (frontEnd != null)
+            {
+                stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            }
+
+            if (stoppedFronEnd != null)
+            {
+                await stoppedFronEnd.Stop().ConfigureAwait(false);
+            }
+            if (stoppedBackEnd != null)
+            {
+                await stoppedBackEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         string retryToAddress;
@@ -92,26 +117,37 @@ namespace ServiceControl.TransportAdapter
 
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
         {
+            Meter meter;
+
+            public ErrorForwardingFailurePolicy(Meter meter)
+            {
+                this.meter = meter;
+            }
+
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
+                meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
         }
 
         class RetryForwardingFailurePolicy : IErrorHandlingPolicy
         {
-            public RetryForwardingFailurePolicy(string errorQueue, int retries, Func<string> retryTo)
+            public RetryForwardingFailurePolicy(string errorQueue, int retries, Func<string> retryTo, Meter forwardFailures, Meter returns)
             {
                 this.errorQueue = errorQueue;
                 this.retries = retries;
                 this.retryTo = retryTo;
+                this.forwardFailures = forwardFailures;
+                this.returns = returns;
             }
 
-            public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
+            public async Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 if (handlingContext.Error.ImmediateProcessingFailures < retries)
                 {
-                    return Task.FromResult(ErrorHandleResult.RetryRequired);
+                    forwardFailures.Mark();
+                    return ErrorHandleResult.RetryRequired;
                 }
                 var headers = handlingContext.Error.Message.Headers;
 
@@ -123,12 +159,16 @@ namespace ServiceControl.TransportAdapter
                     headers.Remove(TargetAddressHeader);
                 }
                 headers[RetrytoHeader] = retryTo();
-                return handlingContext.MoveToErrorQueue(errorQueue, false);
+                var result = await handlingContext.MoveToErrorQueue(errorQueue, false).ConfigureAwait(false);
+                returns.Mark();
+                return result;
             }
 
             string errorQueue;
             int retries;
             Func<string> retryTo;
+            Meter forwardFailures;
+            Meter returns;
         }
     }
 }

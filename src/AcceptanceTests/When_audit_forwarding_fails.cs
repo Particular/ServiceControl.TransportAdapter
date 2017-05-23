@@ -6,30 +6,27 @@ using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
 
 [TestFixture]
-public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
+public class When_audit_forwarding_fails : NServiceBusAcceptanceTest
 {
     [Test]
-    public async Task It_forwards_control_messages()
+    public async Task It_retries_forever()
     {
         var result = await Scenario.Define<Context>()
-            .WithEndpoint<HeartbeatingEndpoint>()
-            .WithComponent(new AdapterComponent())
-            .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) => { c.ControlForwarded = true; }))
-            .Done(c => c.ControlForwarded)
+            .WithEndpoint<AuditEndpoint>(c => c.When(s => s.SendLocal(new MyMessage())))
+            .WithComponent(new AdapterComponent(c => c.ServiceControlSideAuditQueue = "InvalidAddress"))
+            .Done(c => c.MeterValue("Audit forwarding failures") > 10)
             .Run();
 
-        Assert.IsTrue(result.ControlForwarded);
-        Assert.AreEqual(1, result.MeterValue("Control messages forwarded"));
+        Assert.IsTrue(result.MeterValue("Audit forwarding failures") > 10);
     }
 
     class Context : ScenarioContextWithMetrics
     {
-        public bool ControlForwarded { get; set; }
     }
 
-    public class HeartbeatingEndpoint : EndpointConfigurationBuilder
+    public class AuditEndpoint : EndpointConfigurationBuilder
     {
-        public HeartbeatingEndpoint()
+        public AuditEndpoint()
         {
             EndpointSetup<DefaultServer>(c =>
             {

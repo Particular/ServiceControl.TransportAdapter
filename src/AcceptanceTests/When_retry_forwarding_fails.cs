@@ -6,7 +6,6 @@ using NServiceBus.AcceptanceTests;
 using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NServiceBus.Faults;
 using NUnit.Framework;
-using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 [TestFixture]
 public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
@@ -25,7 +24,7 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
                     c.ReturnedRetryHeaders = m.Headers;
                     return Task.CompletedTask;
                 }
-                m.Headers["ServiceControl.TargetEndpointAddress"] = "InvalidAddress";
+                m.Headers[FaultsHeaderKeys.FailedQ] = "InvalidAddress";
                 c.RetryForwarded = true;
                 return sc.Retry(m);
             }))
@@ -35,10 +34,11 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
         Assert.IsTrue(result.RetryForwarded);
         Assert.IsTrue(result.RetryReturned);
 
-        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.ReturnedRetryHeaders[FaultsHeaderKeys.FailedQ]);
+        Assert.AreEqual(1, result.MeterValue("Retry messages returned to ServiceControl"));
+        Assert.AreEqual(4, result.MeterValue("Retry message forwarding failures"));
     }
 
-    class Context : ScenarioContext
+    class Context : ScenarioContextWithMetrics
     {
         public bool RetryForwarded { get; set; }
         public bool RetryReturned { get; set; }
