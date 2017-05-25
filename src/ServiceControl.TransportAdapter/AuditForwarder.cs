@@ -75,8 +75,6 @@
 
         class RetryForeverPolicy : IErrorHandlingPolicy
         {
-            Meter meter;
-
             public RetryForeverPolicy(Meter meter)
             {
                 this.meter = meter;
@@ -88,6 +86,8 @@
                 meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
+
+            Meter meter;
         }
     }
 }

@@ -33,7 +33,7 @@
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
         }
-        
+
         Task OnControlMessage(MessageContext context, string backendControlQueue, string backendMonitoringQueue, Meter controlMessagesForwarded)
         {
             var messageType = context.Headers[Headers.EnclosedMessageTypes];

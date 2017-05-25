@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Metrics;
-using Metrics.Json;
-using Metrics.MetricData;
-using Metrics.Reporters;
-using NServiceBus;
-using NServiceBus.Extensibility;
-using NServiceBus.Logging;
-using NServiceBus.Routing;
-using NServiceBus.Support;
-using NServiceBus.Transport;
-
-namespace ServiceControl.TransportAdapter
+﻿namespace ServiceControl.TransportAdapter
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Metrics;
+    using Metrics.Json;
+    using Metrics.MetricData;
+    using Metrics.Reporters;
+    using NServiceBus;
+    using NServiceBus.Extensibility;
+    using NServiceBus.Logging;
     using NServiceBus.Raw;
+    using NServiceBus.Routing;
+    using NServiceBus.Support;
+    using NServiceBus.Transport;
 
     class NServiceBusMetricReport<TServiceControl> : MetricsReport
         where TServiceControl : TransportDefinition, new()
@@ -37,6 +36,16 @@ namespace ServiceControl.TransportAdapter
             headers[Headers.ContentType] = ContentTypes.Json;
         }
 
+        public void RunReport(MetricsData metricsData, Func<HealthStatus> healthStatus, CancellationToken token)
+        {
+            if (dispatcher == null)
+            {
+                return;
+            }
+            RunReportAsync(metricsData)
+                .IgnoreContinuation();
+        }
+
         public async Task Start()
         {
             dispatcher = await RawEndpoint.Start(senderConfig).ConfigureAwait(false);
@@ -47,16 +56,6 @@ namespace ServiceControl.TransportAdapter
             var sender = dispatcher;
             dispatcher = null;
             return sender.Stop();
-        }
-
-        public void RunReport(MetricsData metricsData, Func<HealthStatus> healthStatus, CancellationToken token)
-        {
-            if (dispatcher == null)
-            {
-                return;
-            }
-            RunReportAsync(metricsData)
-                .IgnoreContinuation();
         }
 
         async Task RunReportAsync(MetricsData metricsData)
@@ -84,8 +83,8 @@ namespace ServiceControl.TransportAdapter
         TransportTransaction transportTransaction = new TransportTransaction();
 
         Dictionary<string, string> headers = new Dictionary<string, string>();
+        RawEndpointConfiguration senderConfig;
 
         static ILog log = LogManager.GetLogger<NServiceBusMetricReport<TServiceControl>>();
-        RawEndpointConfiguration senderConfig;
     }
 }

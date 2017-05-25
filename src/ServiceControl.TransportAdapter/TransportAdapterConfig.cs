@@ -14,11 +14,6 @@
         where TENdpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
-        internal DefaultMetricsContext metricsContext;
-        internal bool sendDataToServiceControl;
-        internal TimeSpan reportInterval;
-        internal Guid? hostId;
-
         /// <summary>
         /// Creates a new configuration object.
         /// </summary>
@@ -92,7 +87,7 @@
         /// Gets or sets the number of immediate retries to be used when forwarding retry messages.
         /// </summary>
         public int RetryForwardingImmediateRetries { get; set; } = 5;
-        
+
         /// <summary>
         /// Configures the metrics.
         /// </summary>
@@ -101,12 +96,15 @@
         /// <summary>
         /// Configures the adapter to send metrics data to ServiceControl.
         /// </summary>
-        /// <param name="optionalHostId">Optional custom host ID. Defaults to a hash of executable path and machine name. Uniquely identifies the adapter in ServiceControl.</param>
-        /// <param name="optionalReportInterval">Optional interval between reports. Defaults to 30 seconds.</param>
-        public void SendMetricDataToServiceControl(Guid? optionalHostId = null, TimeSpan? optionalReportInterval = null)
+        /// <param name="hostId">
+        /// Optional custom host ID. Defaults to a hash of executable path and machine name. Uniquely
+        /// identifies the adapter in ServiceControl.
+        /// </param>
+        /// <param name="reportInterval">Optional interval between reports. Defaults to 30 seconds.</param>
+        public void SendMetricDataToServiceControl(Guid? hostId = null, TimeSpan? reportInterval = null)
         {
-            reportInterval = optionalReportInterval ?? TimeSpan.FromSeconds(30);
-            hostId = optionalHostId;
+            this.reportInterval = reportInterval ?? TimeSpan.FromSeconds(30);
+            this.hostId = hostId;
             sendDataToServiceControl = true;
         }
 
@@ -135,5 +133,10 @@
             }
             BackendTransportCustomization = customization;
         }
+
+        internal DefaultMetricsContext metricsContext;
+        internal bool sendDataToServiceControl;
+        internal TimeSpan reportInterval;
+        internal Guid? hostId;
     }
 }

@@ -120,8 +120,6 @@ namespace ServiceControl.TransportAdapter
 
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
         {
-            Meter meter;
-
             public ErrorForwardingFailurePolicy(Meter meter)
             {
                 this.meter = meter;
@@ -133,6 +131,8 @@ namespace ServiceControl.TransportAdapter
                 meter.Mark();
                 return Task.FromResult(ErrorHandleResult.RetryRequired);
             }
+
+            Meter meter;
         }
 
         class RetryForwardingFailurePolicy : IErrorHandlingPolicy
