@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
     using System;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Transport;
 
@@ -19,6 +20,8 @@
         /// <param name="name">Name of the adapter. Used as a prefix for adapter's own queues.</param>
         public TransportAdapterConfig(string name)
         {
+            metricsContext = new DefaultMetricsContext(name);
+            MetricsConfig = new MetricsConfig(metricsContext);
             Name = name;
         }
 
@@ -65,6 +68,12 @@
         public string ServiceControlSideControlQueue { get; set; } = "Particular.ServiceControl";
 
         /// <summary>
+        /// Gets or sets the ServiceControl-side monitoring queue. Defaults to
+        /// Particular.ServiceControl.Monitoring.
+        /// </summary>
+        public string ServiceControlSideMonitoringQueue { get; set; } = "Particular.ServiceControl.Monitoring";
+
+        /// <summary>
         /// Gets or sets the number of immediate retries to be used when forwarding control messages.
         /// </summary>
         public int ControlForwardingImmediateRetries { get; set; } = 5;
@@ -78,6 +87,26 @@
         /// Gets or sets the number of immediate retries to be used when forwarding retry messages.
         /// </summary>
         public int RetryForwardingImmediateRetries { get; set; } = 5;
+
+        /// <summary>
+        /// Configures the metrics.
+        /// </summary>
+        public MetricsConfig MetricsConfig { get; }
+
+        /// <summary>
+        /// Configures the adapter to send metrics data to ServiceControl.
+        /// </summary>
+        /// <param name="hostId">
+        /// Optional custom host ID. Defaults to a hash of executable path and machine name. Uniquely
+        /// identifies the adapter in ServiceControl.
+        /// </param>
+        /// <param name="reportInterval">Optional interval between reports. Defaults to 30 seconds.</param>
+        public void SendMetricDataToServiceControl(Guid? hostId = null, TimeSpan? reportInterval = null)
+        {
+            this.reportInterval = reportInterval ?? TimeSpan.FromSeconds(30);
+            this.hostId = hostId;
+            sendDataToServiceControl = true;
+        }
 
         /// <summary>
         /// Use provied callback to customize the endpoint-side transport.
@@ -104,5 +133,10 @@
             }
             BackendTransportCustomization = customization;
         }
+
+        internal DefaultMetricsContext metricsContext;
+        internal bool sendDataToServiceControl;
+        internal TimeSpan reportInterval;
+        internal Guid? hostId;
     }
 }

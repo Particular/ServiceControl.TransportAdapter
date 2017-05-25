@@ -27,9 +27,10 @@ public class When_forwarding_a_failed_message : NServiceBusAcceptanceTest
 
         Assert.IsTrue(result.ErrorForwarded);
         Assert.AreEqual($"Adapter.Retry@{Environment.MachineName}", result.FailedMessageHeaders["ServiceControl.RetryTo"]);
+        Assert.AreEqual(1, result.MeterValue("Errors forwarded"));
     }
 
-    class Context : ScenarioContext
+    class Context : ScenarioContextWithMetrics
     {
         public bool ErrorForwarded { get; set; }
         public Dictionary<string, string> FailedMessageHeaders { get; set; }

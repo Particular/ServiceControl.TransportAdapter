@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Metrics, Version=0.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Metrics.NET.0.5.1\lib\net45\Metrics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NServiceBus.AcceptanceTesting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
       <HintPath>..\packages\NServiceBus.AcceptanceTesting.6.3.0-alpha0080\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
       <Private>True</Private>
@@ -81,6 +85,12 @@
     <Compile Include="Infrastructure\AcceptanceTestBase.cs" />
     <Compile Include="Infrastructure\EndpointCustomizationConfigurationExtensions.cs" />
     <Compile Include="Infrastructure\AdapterComponent.cs" />
+    <Compile Include="Infrastructure\MonitoringFakeComponent.cs" />
+    <Compile Include="Infrastructure\MetricsHelper.cs" />
+    <Compile Include="Infrastructure\ScenarioContextWithMetrics.cs" />
+    <Compile Include="When_control_message_forwarding_fails.cs" />
+    <Compile Include="When_audit_forwarding_fails.cs" />
+    <Compile Include="When_sending_metrics_to_ServiceControl.cs" />
     <Compile Include="When_forwarding_a_control_message.cs" />
     <Compile Include="When_retry_forwarding_fails.cs" />
     <Compile Include="When_forwarding_a_retry_message.cs" />

@@ -4,28 +4,29 @@ using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTests;
 using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NUnit.Framework;
+using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 [TestFixture]
-public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
+public class When_control_message_forwarding_fails : NServiceBusAcceptanceTest
 {
     [Test]
-    public async Task It_forwards_control_messages()
+    public async Task It_drops_the_messages()
     {
         var result = await Scenario.Define<Context>()
             .WithEndpoint<HeartbeatingEndpoint>()
-            .WithComponent(new AdapterComponent())
+            .WithComponent(new AdapterComponent(c => c.ServiceControlSideControlQueue = "InvalidAddress"))
             .WithComponent(new ServiceControlFakeComponent<Context>(onControl: (m, c) =>
             {
-                if (m.Headers[Headers.ReplyToAddress].Contains(NServiceBus.AcceptanceTesting.Customization.Conventions.EndpointNamingConvention(typeof(HeartbeatingEndpoint))))
+                if (m.Headers[Headers.ReplyToAddress].Contains(Conventions.EndpointNamingConvention(typeof(HeartbeatingEndpoint))))
                 {
                     c.ControlForwarded = true;
                 }
             }))
-            .Done(c => c.ControlForwarded)
+            .Done(c => c.MeterValue("Control messages dropped") > 0)
             .Run();
 
-        Assert.IsTrue(result.ControlForwarded);
-        Assert.AreEqual(1, result.MeterValue("Control messages forwarded"));
+        Assert.IsFalse(result.ControlForwarded);
+        Assert.IsTrue(result.MeterValue("Control message forwarding failures") >= 4);
     }
 
     class Context : ScenarioContextWithMetrics

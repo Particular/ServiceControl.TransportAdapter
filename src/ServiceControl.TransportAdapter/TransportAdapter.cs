@@ -1,5 +1,7 @@
 namespace ServiceControl.TransportAdapter
 {
+    using System;
+    using NServiceBus.Support;
     using NServiceBus.Transport;
 
     public static class TransportAdapter
@@ -14,16 +16,29 @@ namespace ServiceControl.TransportAdapter
             where TEndpoint : TransportDefinition, new()
             where TServiceControl : TransportDefinition, new()
         {
-            var failedMessageForwarder = new FailedMessageForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideErrorQueue, config.ServiceControlSideErrorQueue,
-                config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization);
+            NServiceBusMetricReport<TServiceControl> report = null;
+            if (config.sendDataToServiceControl)
+            {
+                var fullPathToStartingExe = PathUtilities.SanitizedPath(Environment.CommandLine);
+                var hostId = config.hostId ?? DeterministicGuid.Create(fullPathToStartingExe, RuntimeEnvironment.MachineName);
 
-            var controlMessageForwarder = new ControlForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideControlQueue, config.ServiceControlSideControlQueue,
-                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries);
+                config.MetricsConfig.WithReporting(r =>
+                {
+                    report = new NServiceBusMetricReport<TServiceControl>(config.Name, hostId, config.ServiceControlSideMonitoringQueue, config.BackendTransportCustomization);
+                    r.WithReport(report, config.reportInterval);
+                });
+            }
+
+            var failedMessageForwarder = new FailedMessageForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideErrorQueue, config.ServiceControlSideErrorQueue,
+                config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.metricsContext);
+
+            var controlMessageForwarder = new ControlForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideControlQueue, config.ServiceControlSideControlQueue, config.ServiceControlSideMonitoringQueue,
+                config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries, config.metricsContext);
 
             var auditForwarder = new AuditForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideAuditQueue, config.ServiceControlSideAuditQueue, config.PoisonMessageQueue,
-                config.FrontendTransportCustomization, config.BackendTransportCustomization);
+                config.FrontendTransportCustomization, config.BackendTransportCustomization, config.metricsContext);
 
-            return new ServiceControlTransportAdapter<TEndpoint, TServiceControl>(failedMessageForwarder, controlMessageForwarder, auditForwarder);
+            return new ServiceControlTransportAdapter<TEndpoint, TServiceControl>(failedMessageForwarder, controlMessageForwarder, auditForwarder, report);
         }
     }
 }

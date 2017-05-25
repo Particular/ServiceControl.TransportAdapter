@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Metrics;
     using NServiceBus;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -12,13 +13,17 @@
         where TEndpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
-        public ControlForwarder(string adapterName, string frontendControlQueue, string backendControlQueue, string poisonMessageQueueName,
+        public ControlForwarder(string adapterName, string frontendControlQueue, string backendControlQueue, string backendMonitoringQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
-            int controlMessageImmediateRetries)
+            int controlMessageImmediateRetries, MetricsContext metricsContext)
         {
-            frontEndConfig = RawEndpointConfiguration.Create(frontendControlQueue, (context, _) => OnControlMessage(context, backendControlQueue), poisonMessageQueueName);
+            var controlMessagesForwarded = metricsContext.Meter("Control messages forwarded", Unit.Custom("Messages"));
+            var controlMessageForwardFailures = metricsContext.Meter("Control message forwarding failures", Unit.Custom("Messages"));
+            var controlMessagesDropped = metricsContext.Meter("Control messages dropped", Unit.Custom("Messages"));
 
-            frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
+            frontEndConfig = RawEndpointConfiguration.Create(frontendControlQueue, (context, _) => OnControlMessage(context, backendControlQueue, backendMonitoringQueue, controlMessagesForwarded), poisonMessageQueueName);
+
+            frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries, controlMessageForwardFailures, controlMessagesDropped));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
@@ -28,11 +33,23 @@
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
         }
-        
-        Task OnControlMessage(MessageContext context, string backendControlQueue)
+
+        Task OnControlMessage(MessageContext context, string backendControlQueue, string backendMonitoringQueue, Meter controlMessagesForwarded)
         {
-            logger.Debug("Forwarding a control message.");
-            return Forward(context, backEnd, backendControlQueue);
+            var messageType = context.Headers[Headers.EnclosedMessageTypes];
+            if (string.Equals(messageType, "NServiceBus.Metrics.MetricReport", StringComparison.OrdinalIgnoreCase))
+            {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"Forwarding the metrics report {context.MessageId} to {backendMonitoringQueue}");
+                }
+                return Forward(context, backEnd, backendMonitoringQueue, controlMessagesForwarded);
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"Forwarding the control message {context.MessageId} of type {messageType} to {backendControlQueue}");
+            }
+            return Forward(context, backEnd, backendControlQueue, controlMessagesForwarded);
         }
 
         public async Task Start()
@@ -43,15 +60,22 @@
 
         public async Task Stop()
         {
-            await frontEnd.Stop().ConfigureAwait(false);
-            await backEnd.Stop().ConfigureAwait(false);
+            if (frontEnd != null)
+            {
+                await frontEnd.Stop().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                await backEnd.Stop().ConfigureAwait(false);
+            }
         }
 
-        static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
+        static async Task Forward(MessageContext context, IDispatchMessages forwarder, string destination, Meter meter)
         {
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            await forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context).ConfigureAwait(false);
+            meter.Mark();
         }
 
         RawEndpointConfiguration backEndConfig;
@@ -63,21 +87,29 @@
 
         class BestEffortPolicy : IErrorHandlingPolicy
         {
-            public BestEffortPolicy(int maxFailures)
+            public BestEffortPolicy(int maxFailures, Meter failures, Meter dropped)
             {
                 this.maxFailures = maxFailures;
+                this.failures = failures;
+                this.dropped = dropped;
             }
 
             public Task<ErrorHandleResult> OnError(IErrorHandlingPolicyContext handlingContext, IDispatchMessages dispatcher)
             {
                 if (handlingContext.Error.ImmediateProcessingFailures < maxFailures)
                 {
+                    logger.Info($"Adapter is going to retry forwarding the control message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
+                    failures.Mark();
                     return Task.FromResult(ErrorHandleResult.RetryRequired);
                 }
+                dropped.Mark();
+                logger.Error($"Adapter is dropping the control message '{handlingContext.Error.Message.MessageId}' because of an exception:", handlingContext.Error.Exception);
                 return Task.FromResult(ErrorHandleResult.Handled); //Ignore this message
             }
 
             int maxFailures;
+            Meter failures;
+            Meter dropped;
         }
     }
 }
