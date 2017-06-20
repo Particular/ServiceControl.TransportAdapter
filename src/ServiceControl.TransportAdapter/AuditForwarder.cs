@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -20,7 +19,6 @@
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var transport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(transport);
-            transport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
