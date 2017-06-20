@@ -2,6 +2,9 @@ namespace ServiceControl.TransportAdapter
 {
     using NServiceBus.Transport;
 
+    /// <summary>
+    /// Provides the main entry point to the ServiceControl.TransportAdapter.
+    /// </summary>
     public static class TransportAdapter
     {
         /// <summary>
@@ -9,7 +12,6 @@ namespace ServiceControl.TransportAdapter
         /// </summary>
         /// <typeparam name="TEndpoint">Endpoint-side transport.</typeparam>
         /// <typeparam name="TServiceControl">ServiceControl-side transport.</typeparam>
-        /// <param name="config">Configuration.</param>
         public static ITransportAdapter Create<TEndpoint, TServiceControl>(TransportAdapterConfig<TEndpoint, TServiceControl> config)
             where TEndpoint : TransportDefinition, new()
             where TServiceControl : TransportDefinition, new()

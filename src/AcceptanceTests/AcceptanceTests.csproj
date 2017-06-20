@@ -1,114 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{95B821CD-36ED-419D-93B5-42490F9D2D76}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceControl.TransportAdapter.AcceptanceTests</RootNamespace>
-    <AssemblyName>ServiceControl.TransportAdapter.AcceptanceTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NServiceBus.AcceptanceTesting, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.AcceptanceTesting.6.3.0-alpha0080\lib\net452\NServiceBus.AcceptanceTesting.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NServiceBus.Core, Version=6.0.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.6.3.0-alpha0080\lib\net452\NServiceBus.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NServiceBus.Raw, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NServiceBus.Raw.0.2.1\lib\net452\NServiceBus.Raw.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.6.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.6.1\lib\net45\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="ServiceControl.Plugin.Nsb6.Heartbeat, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ServiceControl.Plugin.Nsb6.Heartbeat.2.0.0\lib\net452\ServiceControl.Plugin.Nsb6.Heartbeat.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
+    <PackageReference Include="NServiceBus" Version="6.3.4" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.3.4" />
+    <PackageReference Include="NServiceBus.Raw" Version="1.0.0" />
+    <PackageReference Include="NUnit" Version="3.7.1" />
+    <PackageReference Include="ServiceControl.Plugin.Nsb6.Heartbeat" Version="3.0.1" />
+    <ProjectReference Include="..\ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj" />
     <Reference Include="System.Messaging" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConfigureEndpointInMemoryPersistence.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConfigureEndpointMsmqTransport.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ConventionEnforcementTests.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\DeterministicGuid.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\ConfigureExtensions.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\DefaultPublisher.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\DefaultServer.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\EndpointConfigurationExtensions.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\EndpointCustomizationConfigurationExtensions.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\IConfigureEndpointTestExecution.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\EndpointTemplates\ServerWithNoDefaultPersistenceDefinitions.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\NServiceBusAcceptanceTest.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ScenarioDescriptors\EnvironmentHelper.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.3.0-alpha0080\ScenarioDescriptors\TypeScanner.cs" />
-    <Compile Include="Infrastructure\AcceptanceTestBase.cs" />
-    <Compile Include="Infrastructure\EndpointCustomizationConfigurationExtensions.cs" />
-    <Compile Include="Infrastructure\AdapterComponent.cs" />
-    <Compile Include="When_forwarding_a_control_message.cs" />
-    <Compile Include="When_retry_forwarding_fails.cs" />
-    <Compile Include="When_forwarding_a_retry_message.cs" />
-    <Compile Include="When_forwarding_a_failed_message.cs" />
-    <Compile Include="When_forwarding_an_audit_message.cs" />
-    <Compile Include="Infrastructure\IServiceControl.cs" />
-    <Compile Include="Infrastructure\ServiceControlFakeComponent.cs" />
-    <Compile Include="Infrastructure\ServiceControlFake.cs" />
-    <Compile Include="Infrastructure\TypesToScanExtensions.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj">
-      <Project>{9B891C3B-8051-4BB5-9257-6A954CF908C3}</Project>
-      <Name>ServiceControl.TransportAdapter</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

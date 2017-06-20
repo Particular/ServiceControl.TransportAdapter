@@ -5,7 +5,7 @@
     <version>$version$</version>
     <title>ServiceControl.TransportAdapter</title>
     <authors>$authors$</authors>
-    <owners>$owners$</owners>    
+    <owners>$owners$</owners>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$></projectUrl>
     <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
@@ -18,6 +18,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\ServiceControl.TransportAdapter.???" target="lib\net452" />
+    <file src="..\..\binaries\net452\ServiceControl.TransportAdapter.???" target="lib\net452" />
   </files>
 </package>

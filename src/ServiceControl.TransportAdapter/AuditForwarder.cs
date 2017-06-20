@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -17,8 +18,9 @@
         {
             frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
-            var extensions = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(extensions);
+            var transport = frontEndConfig.UseTransport<TEndpoint>();
+            frontendTransportCustomization(transport);
+            transport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
@@ -47,8 +49,15 @@
 
         public async Task Stop()
         {
-            await frontEnd.Stop().ConfigureAwait(false);
-            await backEnd.Stop().ConfigureAwait(false);
+            //null-checks for shutting down if start-up failed
+            if (frontEnd != null)
+            {
+                await frontEnd.Stop().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                await backEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         RawEndpointConfiguration backEndConfig;

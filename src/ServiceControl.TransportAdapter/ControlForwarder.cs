@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -21,6 +22,7 @@
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
+            frontEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
@@ -43,8 +45,15 @@
 
         public async Task Stop()
         {
-            await frontEnd.Stop().ConfigureAwait(false);
-            await backEnd.Stop().ConfigureAwait(false);
+            //null-checks for shutting down if start-up failed
+            if (frontEnd != null)
+            {
+                await frontEnd.Stop().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                await backEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)

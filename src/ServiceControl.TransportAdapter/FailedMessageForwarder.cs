@@ -3,6 +3,7 @@ namespace ServiceControl.TransportAdapter
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -21,12 +22,14 @@ namespace ServiceControl.TransportAdapter
             backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
+            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             backEndConfig.AutoCreateQueue();
 
             frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
+            frontEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
         }
 
@@ -71,11 +74,27 @@ namespace ServiceControl.TransportAdapter
 
         public async Task Stop()
         {
-            var stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
-            var stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            //null-checks for shutting down if start-up failed
+            IStoppableRawEnedpoint stoppedFrontEnd = null;
+            IStoppableRawEnedpoint stoppedBackEnd = null;
 
-            await stoppedFronEnd.Stop().ConfigureAwait(false);
-            await stoppedBackEnd.Stop().ConfigureAwait(false);
+            if (frontEnd != null)
+            {
+                stoppedFrontEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            }
+
+            if (stoppedFrontEnd != null)
+            {
+                await stoppedFrontEnd.Stop().ConfigureAwait(false);
+            }
+            if (stoppedBackEnd != null)
+            {
+                await stoppedBackEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         string retryToAddress;
