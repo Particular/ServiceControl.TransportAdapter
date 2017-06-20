@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -21,11 +22,13 @@
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
+            frontEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
+            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             backEndConfig.AutoCreateQueue();
         }
         

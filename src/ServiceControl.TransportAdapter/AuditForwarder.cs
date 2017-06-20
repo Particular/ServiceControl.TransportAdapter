@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
     using NServiceBus.Routing;
@@ -17,13 +18,15 @@
         {
             frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
-            var extensions = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(extensions);
+            var transport = frontEndConfig.UseTransport<TEndpoint>();
+            frontendTransportCustomization(transport);
+            transport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
+            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
         }
 
         Task OnAuditMessage(MessageContext context, string backendAuditQueue)

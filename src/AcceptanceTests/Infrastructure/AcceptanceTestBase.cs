@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Messaging;
     using System.Threading.Tasks;
-    using NServiceBus;
     using NUnit.Framework;
 
     public abstract class AcceptanceTestBase
@@ -48,25 +47,6 @@
             MessageQueue.ClearConnectionCache();
 
             return Task.FromResult(0);
-        }
-
-        protected static TransportAdapterConfig<MsmqTransport, MsmqTransport> PrepareAdapterConfig()
-        {
-            var adapterConfig = new TransportAdapterConfig<MsmqTransport, MsmqTransport>("SCTA.ErrorForwarding.Adapter")
-            {
-                EndpointSideErrorQueue = "SCTA.error-front",
-                ServiceControlSideErrorQueue = "SCTA.error-back",
-                EndpointSideAuditQueue = "SCTA.audit-front",
-                ServiceControlSideAuditQueue = "SCTA.audit-back",
-                EndpointSideControlQueue = "SCTA.control-front",
-                ServiceControlSideControlQueue = "SCTA.control-back"
-            };
-            return adapterConfig;
-        }
-
-        protected static ServiceControlFake<MsmqTransport> PrepareServiceControlFake(Action<TransportExtensions<MsmqTransport>> transportCustomization)
-        {
-            return new ServiceControlFake<MsmqTransport>("SCTA.audit-back", "SCTA.error-back", "SCTA.control-back", transportCustomization);
         }
     }
 }

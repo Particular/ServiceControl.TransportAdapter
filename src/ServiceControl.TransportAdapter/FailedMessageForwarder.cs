@@ -3,6 +3,7 @@ namespace ServiceControl.TransportAdapter
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Faults;
     using NServiceBus.Logging;
     using NServiceBus.Raw;
@@ -21,12 +22,14 @@ namespace ServiceControl.TransportAdapter
             backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
+            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             backEndConfig.AutoCreateQueue();
 
             frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(frontEndTransport);
+            frontEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             frontEndConfig.AutoCreateQueue();
         }
 

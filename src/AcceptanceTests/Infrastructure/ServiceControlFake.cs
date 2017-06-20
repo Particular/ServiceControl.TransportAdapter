@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
+    using NServiceBus.Configuration.AdvanceExtensibility;
     using NServiceBus.Extensibility;
     using NServiceBus.Faults;
     using NServiceBus.Features;
@@ -91,6 +92,7 @@
         {
             var config = RawEndpointConfiguration.Create(queueName, onMessage, "poison");
             var transport = config.UseTransport<TTransport>();
+            transport.GetSettings().Set("errorQueue", "poison");
             transportCustomization(transport);
             config.AutoCreateQueue();
             return config;
