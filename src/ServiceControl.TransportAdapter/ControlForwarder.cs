@@ -28,7 +28,6 @@
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
-            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
             backEndConfig.AutoCreateQueue();
         }
         

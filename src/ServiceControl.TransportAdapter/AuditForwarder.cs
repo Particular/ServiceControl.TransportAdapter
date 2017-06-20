@@ -26,7 +26,6 @@
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
-            backEndTransport.GetSettings().Set("errorQueue", poisonMessageQueueName);
         }
 
         Task OnAuditMessage(MessageContext context, string backendAuditQueue)
