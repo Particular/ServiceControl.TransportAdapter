@@ -46,8 +46,15 @@
 
         public async Task Stop()
         {
-            await frontEnd.Stop().ConfigureAwait(false);
-            await backEnd.Stop().ConfigureAwait(false);
+            //null-checks for shutting down if start-up failed
+            if (frontEnd != null)
+            {
+                await frontEnd.Stop().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                await backEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
