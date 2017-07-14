@@ -8,6 +8,8 @@
     <NoWarn>CS0618</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\packaging\nuget\servicecontrol.transportadapter.nuspec" Link="servicecontrol.transportadapter.nuspec" />
