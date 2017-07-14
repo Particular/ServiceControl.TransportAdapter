@@ -71,11 +71,27 @@ namespace ServiceControl.TransportAdapter
 
         public async Task Stop()
         {
-            var stoppedFronEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
-            var stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            //null-checks for shutting down if start-up failed
+            IStoppableRawEndpoint stoppedFrontEnd = null;
+            IStoppableRawEndpoint stoppedBackEnd = null;
 
-            await stoppedFronEnd.Stop().ConfigureAwait(false);
-            await stoppedBackEnd.Stop().ConfigureAwait(false);
+            if (frontEnd != null)
+            {
+                stoppedFrontEnd = await frontEnd.StopReceiving().ConfigureAwait(false);
+            }
+            if (backEnd != null)
+            {
+                stoppedBackEnd = await backEnd.StopReceiving().ConfigureAwait(false);
+            }
+
+            if (stoppedFrontEnd != null)
+            {
+                await stoppedFrontEnd.Stop().ConfigureAwait(false);
+            }
+            if (stoppedBackEnd != null)
+            {
+                await stoppedBackEnd.Stop().ConfigureAwait(false);
+            }
         }
 
         string retryToAddress;

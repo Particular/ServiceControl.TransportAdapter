@@ -5,7 +5,7 @@
     <version>$version$</version>
     <title>ServiceControl.TransportAdapter</title>
     <authors>$authors$</authors>
-    <owners>$owners$</owners>    
+    <owners>$owners$</owners>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$></projectUrl>
     <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
@@ -14,10 +14,10 @@
     <tags>$tags$</tags>
     <dependencies>
       <dependency id="NServiceBus" version="[6.0.0, 7.0.0)" />
-      <dependency id="NServiceBus.Raw" version="[1.0.0, 2.0.0)" />
+      <dependency id="NServiceBus.Raw" version="[2.0.2, 3.0.0)" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\ServiceControl.TransportAdapter.???" target="lib\net452" />
+    <file src="..\..\binaries\net452\ServiceControl.TransportAdapter.???" target="lib\net452" />
   </files>
 </package>
