@@ -5,7 +5,7 @@
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="6.3.4" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.3.4" />
-    <PackageReference Include="NServiceBus.Raw" Version="2.0.1" />
+    <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
     <PackageReference Include="NUnit" Version="3.7.1" />
     <PackageReference Include="ServiceControl.Plugin.Nsb6.Heartbeat" Version="3.0.1" />
     <ProjectReference Include="..\ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj" />

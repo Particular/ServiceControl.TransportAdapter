@@ -15,7 +15,7 @@
     <None Include="..\..\packaging\nuget\servicecontrol.transportadapter.nuspec" Link="servicecontrol.transportadapter.nuspec" />
     <PackageReference Include="GitVersionTask" Version="3.6.5" />
     <PackageReference Include="NServiceBus" Version="6.3.4" />
-    <PackageReference Include="NServiceBus.Raw" Version="2.0.1" />
+    <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
     <PackageReference Include="NuGetPackager" Version="0.6.1" />
   </ItemGroup>
 </Project>
