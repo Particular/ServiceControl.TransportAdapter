@@ -17,7 +17,8 @@ namespace ServiceControl.TransportAdapter
             where TServiceControl : TransportDefinition, new()
         {
             var failedMessageForwarder = new FailedMessageForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideErrorQueue, config.ServiceControlSideErrorQueue,
-                config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization);
+                config.RetryForwardingImmediateRetries, config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization,
+                config.RedirectCallback, config.PreserveHeadersCallback, config.RestoreHeadersCallback);
 
             var controlMessageForwarder = new ControlForwarder<TEndpoint, TServiceControl>(config.Name, config.EndpointSideControlQueue, config.ServiceControlSideControlQueue,
                 config.PoisonMessageQueue, config.FrontendTransportCustomization, config.BackendTransportCustomization, config.ControlForwardingImmediateRetries);

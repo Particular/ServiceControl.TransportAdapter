@@ -1,6 +1,7 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
     using System;
+    using System.Collections.Generic;
     using NServiceBus;
     using NServiceBus.Transport;
 
@@ -13,6 +14,10 @@
         where TENdpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
+        internal RedirectRetriedMessages RedirectCallback = (failedQ, headers) => failedQ;
+        internal PreserveHeaders PreserveHeadersCallback = x => { };
+        internal RestoreHeaders RestoreHeadersCallback = x => { };
+
         /// <summary>
         /// Creates a new configuration object.
         /// </summary>
@@ -104,5 +109,42 @@
             }
             BackendTransportCustomization = customization;
         }
+
+        /// <summary>
+        /// Instructs the adapter to redirect retried messages based on the provided callback.
+        /// </summary>
+        public void RedirectRetriedMessages(RedirectRetriedMessages redirectCallback)
+        {
+            this.RedirectCallback = redirectCallback;
+        }
+
+        /// <summary>
+        /// Instructs the adapter to preserve certain faied message headers and restore them back when retrying the message.
+        /// </summary>
+        public void PreserveHeaders(PreserveHeaders preserveCallback, RestoreHeaders restoreCallback)
+        {
+            this.PreserveHeadersCallback = preserveCallback;
+            this.RestoreHeadersCallback = restoreCallback;
+        }
     }
+
+    /// <summary>
+    /// Delagate for redirecting retried messages.
+    /// </summary>
+    /// <param name="failedQ">Address from the original FailedQ header.</param>
+    /// <param name="headers">Headers of the message.</param>
+    /// <returns>New destination address</returns>
+    public delegate string RedirectRetriedMessages(string failedQ, Dictionary<string, string> headers);
+
+    /// <summary>
+    /// Callback for copying message headers so that value are not overwritten by ServiceControl.
+    /// </summary>
+    /// <param name="headers">Message headers.</param>
+    public delegate void PreserveHeaders(Dictionary<string, string> headers);
+
+    /// <summary>
+    /// Callback for copying preserved message headers back.
+    /// </summary>
+    /// <param name="headers">Message headers.</param>
+    public delegate void RestoreHeaders(Dictionary<string, string> headers);
 }

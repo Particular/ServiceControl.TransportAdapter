@@ -1,6 +1,7 @@
 namespace ServiceControl.TransportAdapter
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Faults;
@@ -13,10 +14,12 @@ namespace ServiceControl.TransportAdapter
         where TServiceControl : TransportDefinition, new()
         where TEndpoint : TransportDefinition, new()
     {
-        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName,
-            Action<TransportExtensions<TEndpoint>> frontendTransportCustomization,
-            Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
+        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+            RedirectRetriedMessages retryRedirectCallback, PreserveHeaders preserveHeadersCallback, RestoreHeaders restoreHeadersCallback)
         {
+            this.retryRedirectCallback = retryRedirectCallback;
+            this.preserveHeadersCallback = preserveHeadersCallback;
+            this.restoreHeadersCallback = restoreHeadersCallback;
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
             backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
@@ -34,23 +37,32 @@ namespace ServiceControl.TransportAdapter
         {
             context.Headers[RetrytoHeader] = retryToAddress;
             logger.Debug("Forwarding an error message.");
-            return Forward(context, backEndDispatcher, backendErrorQueue);
+
+            var newHeaders = new Dictionary<string, string>(context.Headers);
+
+            preserveHeadersCallback(newHeaders);
+
+            return Forward(newHeaders, context, backEndDispatcher, backendErrorQueue);
         }
 
         Task OnRetryMessage(MessageContext context)
         {
-            var destination = context.Headers[TargetAddressHeader];
+            var newHeaders = new Dictionary<string, string>(context.Headers);
+
+            var destination = newHeaders[TargetAddressHeader];
 
             logger.Debug($"Forwarding a retry message to {destination}");
 
-            context.Headers.Remove(TargetAddressHeader);
+            newHeaders.Remove(TargetAddressHeader);
 
-            return Forward(context, frontEndDispatcher, destination);
+            restoreHeadersCallback(newHeaders);
+            return Forward(newHeaders, context, frontEndDispatcher, retryRedirectCallback(destination, context.Headers));
+
         }
 
-        static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
+        static Task Forward(Dictionary<string, string> newHeaders, MessageContext context, IDispatchMessages forwarder, string destination)
         {
-            var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
+            var message = new OutgoingMessage(context.MessageId, newHeaders, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
             return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
         }
@@ -93,6 +105,9 @@ namespace ServiceControl.TransportAdapter
                 await stoppedBackEnd.Stop().ConfigureAwait(false);
             }
         }
+        RedirectRetriedMessages retryRedirectCallback;
+        PreserveHeaders preserveHeadersCallback;
+        RestoreHeaders restoreHeadersCallback;
 
         string retryToAddress;
         RawEndpointConfiguration backEndConfig;
