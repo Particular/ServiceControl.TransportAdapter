@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
+   
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -34,6 +36,12 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
+            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+            {
+                context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
+                context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;
+            }
+
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
             return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);

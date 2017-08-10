@@ -2,6 +2,7 @@ namespace ServiceControl.TransportAdapter
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Faults;
@@ -35,10 +36,16 @@ namespace ServiceControl.TransportAdapter
 
         Task OnErrorMessage(MessageContext context, string backendErrorQueue)
         {
-            context.Headers[RetrytoHeader] = retryToAddress;
+            context.Headers[TransportAdapterHeaders.RetryTo] = retryToAddress;
             logger.Debug("Forwarding an error message.");
 
             var newHeaders = new Dictionary<string, string>(context.Headers);
+
+            if (newHeaders.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+            {
+                newHeaders[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
+                newHeaders[TransportAdapterHeaders.ReplyToAddress] = replyTo;
+            }
 
             preserveHeadersCallback(newHeaders);
 
@@ -49,11 +56,17 @@ namespace ServiceControl.TransportAdapter
         {
             var newHeaders = new Dictionary<string, string>(context.Headers);
 
-            var destination = newHeaders[TargetAddressHeader];
+            var destination = newHeaders[TransportAdapterHeaders.TargetEndpointAddress];
 
             logger.Debug($"Forwarding a retry message to {destination}");
 
-            newHeaders.Remove(TargetAddressHeader);
+            newHeaders.Remove(TransportAdapterHeaders.TargetEndpointAddress);
+
+            if (newHeaders.TryGetValue(TransportAdapterHeaders.ReplyToAddress, out string replyTo))
+            {
+                newHeaders.Remove(TransportAdapterHeaders.ReplyToAddress);
+                newHeaders[Headers.ReplyToAddress] = replyTo;
+            }
 
             restoreHeadersCallback(newHeaders);
             return Forward(newHeaders, context, frontEndDispatcher, retryRedirectCallback(destination, context.Headers));
@@ -117,8 +130,6 @@ namespace ServiceControl.TransportAdapter
         IReceivingRawEndpoint backEnd;
         IDispatchMessages frontEndDispatcher;
         IReceivingRawEndpoint frontEnd;
-        const string TargetAddressHeader = "ServiceControl.TargetEndpointAddress";
-        const string RetrytoHeader = "ServiceControl.RetryTo";
         static ILog logger = LogManager.GetLogger(typeof(FailedMessageForwarder<,>));
 
         class ErrorForwardingFailurePolicy : IErrorHandlingPolicy
@@ -148,12 +159,12 @@ namespace ServiceControl.TransportAdapter
 
                 //Will show as if failure occured in the original failure queue.
                 string destination;
-                if (headers.TryGetValue(TargetAddressHeader, out destination))
+                if (headers.TryGetValue(TransportAdapterHeaders.TargetEndpointAddress, out destination))
                 {
                     headers[FaultsHeaderKeys.FailedQ] = destination;
-                    headers.Remove(TargetAddressHeader);
+                    headers.Remove(TransportAdapterHeaders.TargetEndpointAddress);
                 }
-                headers[RetrytoHeader] = retryTo();
+                headers[TransportAdapterHeaders.RetryTo] = retryTo();
                 return handlingContext.MoveToErrorQueue(errorQueue, false);
             }
 
