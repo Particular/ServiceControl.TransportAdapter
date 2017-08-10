@@ -2,6 +2,7 @@ namespace ServiceControl.TransportAdapter
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Faults;
@@ -42,7 +43,7 @@ namespace ServiceControl.TransportAdapter
 
             if (newHeaders.TryGetValue(Headers.ReplyToAddress, out string replyTo))
             {
-                newHeaders.Remove(Headers.ReplyToAddress);
+                newHeaders[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 newHeaders[TransportAdapterHeaders.ReplyToAddress] = replyTo;
             }
 

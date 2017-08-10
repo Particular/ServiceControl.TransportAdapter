@@ -1,6 +1,8 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
+   
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using NServiceBus;
     using NServiceBus.Logging;
@@ -36,7 +38,7 @@
         {
             if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
             {
-                context.Headers.Remove(Headers.ReplyToAddress);
+                context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;
             }
 

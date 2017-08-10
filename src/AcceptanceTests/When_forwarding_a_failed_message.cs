@@ -29,7 +29,7 @@ public class When_forwarding_a_failed_message : NServiceBusAcceptanceTest
         Assert.IsTrue(result.ErrorForwarded);
         Assert.AreEqual($"Adapter.Retry@{Environment.MachineName}", result.FailedMessageHeaders["ServiceControl.RetryTo"]);
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders["_adapter.Original.ReplyToAddress"]);
-        Assert.IsFalse(result.FailedMessageHeaders.ContainsKey(Headers.ReplyToAddress));
+        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders[Headers.ReplyToAddress]);
     }
 
     class Context : ScenarioContext

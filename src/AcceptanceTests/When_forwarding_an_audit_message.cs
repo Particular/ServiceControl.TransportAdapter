@@ -26,6 +26,7 @@ public class When_forwarding_an_audit_message : NServiceBusAcceptanceTest
 
         Assert.IsTrue(result.AuditForwarded);
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(AuditEndpoint)), result.AuditHeaders["_adapter.Original.ReplyToAddress"]);
+        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(AuditEndpoint)), result.AuditHeaders[Headers.ReplyToAddress]);
     }
 
     class Context : ScenarioContext
