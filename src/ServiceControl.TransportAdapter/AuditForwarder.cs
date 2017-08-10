@@ -34,6 +34,12 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
+            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+            {
+                context.Headers.Remove(Headers.ReplyToAddress);
+                context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;
+            }
+
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
             return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
