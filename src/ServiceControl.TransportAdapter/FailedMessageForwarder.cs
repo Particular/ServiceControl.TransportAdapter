@@ -64,7 +64,7 @@ namespace ServiceControl.TransportAdapter
         {
             var message = new OutgoingMessage(context.MessageId, newHeaders, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Extensions);
         }
 
         public async Task Start()
@@ -147,8 +147,7 @@ namespace ServiceControl.TransportAdapter
                 var headers = handlingContext.Error.Message.Headers;
 
                 //Will show as if failure occured in the original failure queue.
-                string destination;
-                if (headers.TryGetValue(TargetAddressHeader, out destination))
+                if (headers.TryGetValue(TargetAddressHeader, out var destination))
                 {
                     headers[FaultsHeaderKeys.FailedQ] = destination;
                     headers.Remove(TargetAddressHeader);
