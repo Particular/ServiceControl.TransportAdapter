@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Extensibility;
     using NServiceBus.Faults;
     using NServiceBus.Features;
@@ -52,8 +52,7 @@
             var destination = message.Headers[FaultsHeaderKeys.FailedQ];
             message.Headers["ServiceControl.TargetEndpointAddress"] = destination;
 
-            string retryTo;
-            if (!message.Headers.TryGetValue("ServiceControl.RetryTo", out retryTo))
+            if (!message.Headers.TryGetValue("ServiceControl.RetryTo", out var retryTo))
             {
                 retryTo = destination;
                 message.Headers.Remove("ServiceControl.TargetEndpointAddress");
@@ -82,7 +81,6 @@
             config.UsePersistence<InMemoryPersistence>();
             config.EnableInstallers();
             config.DisableFeature<TimeoutManager>();
-            config.Recoverability().DisableLegacyRetriesSatellite();
             config.SendFailedMessagesTo("poison");
             config.TypesToScanHack(new Type[0]);
             return config;

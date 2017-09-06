@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>net461</TargetFrameworks>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NServiceBus" Version="6.3.4" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.3.4" />
-    <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
-    <PackageReference Include="NUnit" Version="3.7.1" />
-    <PackageReference Include="ServiceControl.Plugin.Nsb6.Heartbeat" Version="3.0.1" />
+    <PackageReference Include="NServiceBus" Version="7.0.0-*" />
+    <PackageReference Include="NServiceBus.Raw" Version="3.0.0-*" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.0-*" />
+    <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.0.0-*" />
+    <PackageReference Include="NUnit" Version="3.*" />
     <ProjectReference Include="..\ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj" />
     <Reference Include="System.Messaging" />
   </ItemGroup>

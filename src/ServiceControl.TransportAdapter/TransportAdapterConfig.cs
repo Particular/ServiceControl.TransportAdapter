@@ -115,7 +115,7 @@
         /// </summary>
         public void RedirectRetriedMessages(RedirectRetriedMessages redirectCallback)
         {
-            this.RedirectCallback = redirectCallback;
+            RedirectCallback = redirectCallback;
         }
 
         /// <summary>
@@ -123,8 +123,8 @@
         /// </summary>
         public void PreserveHeaders(PreserveHeaders preserveCallback, RestoreHeaders restoreCallback)
         {
-            this.PreserveHeadersCallback = preserveCallback;
-            this.RestoreHeadersCallback = restoreCallback;
+            PreserveHeadersCallback = preserveCallback;
+            RestoreHeadersCallback = restoreCallback;
         }
     }
 
