@@ -9,6 +9,7 @@ using NUnit.Framework;
 public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
 {
     [Test]
+    [Explicit("No HB plugin for V7")]
     public async Task It_forwards_control_messages()
     {
         var result = await Scenario.Define<Context>()
@@ -33,7 +34,8 @@ public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
             EndpointSetup<DefaultServer>(c =>
             {
                 c.SendFailedMessagesTo("error");
-                c.HeartbeatPlugin("Particular.ServiceControl");
+                //TODO: Uncomment when HB plugin for V7 is released
+                //c.HeartbeatPlugin("Particular.ServiceControl"); 
                 c.AuditProcessedMessagesTo("Audit");
             });
         }

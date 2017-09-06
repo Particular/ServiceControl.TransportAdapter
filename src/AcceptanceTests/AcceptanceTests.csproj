@@ -10,7 +10,6 @@
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.0-*" />
     <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.0.0-*" />
     <PackageReference Include="NUnit" Version="3.*" />
-    <PackageReference Include="ServiceControl.Plugin.Nsb6.Heartbeat" Version="3.0.1" />
     <ProjectReference Include="..\ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj" />
     <Reference Include="System.Messaging" />
   </ItemGroup>
