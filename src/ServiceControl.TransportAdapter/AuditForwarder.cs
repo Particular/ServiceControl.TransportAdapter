@@ -35,7 +35,8 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
-            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+
+            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyTo))
             {
                 context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;
