@@ -34,7 +34,6 @@ public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
             {
                 c.SendFailedMessagesTo("error");
                 c.SendHeartbeatTo("Particular.ServiceControl");
-                c.AuditProcessedMessagesTo("Audit");
             });
         }
 
