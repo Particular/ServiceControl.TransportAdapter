@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,9 +12,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.0.0-beta0012" />
     <PackageReference Include="NServiceBus.Raw" Version="3.0.0-beta0003" />
-    <PackageReference Include="NServiceBus.Transport.Msmq" Version="1.0.0-beta0006" />
     <PackageReference Include="NUnit" Version="3.*" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+    <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.0-*" />
   </ItemGroup>
 
 </Project>
