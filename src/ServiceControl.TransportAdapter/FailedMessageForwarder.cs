@@ -72,11 +72,11 @@ namespace ServiceControl.TransportAdapter
 
         }
 
-        static async Task Forward(Dictionary<string, string> newHeaders, MessageContext context, IDispatchMessages forwarder, string destination)
+        static Task Forward(Dictionary<string, string> newHeaders, MessageContext context, IDispatchMessages forwarder, string destination)
         {
             var message = new OutgoingMessage(context.MessageId, newHeaders, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            await forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Extensions).ConfigureAwait(false);
+            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Extensions);
         }
 
         public async Task Start()
