@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -27,7 +26,7 @@ public class When_forwarding_a_failed_message : NServiceBusAcceptanceTest
             .Run();
 
         Assert.IsTrue(result.ErrorForwarded);
-        Assert.AreEqual($"Adapter.Retry@{Environment.MachineName}", result.FailedMessageHeaders["ServiceControl.RetryTo"]);
+        Assert.AreEqual("Adapter.Retry", result.FailedMessageHeaders["ServiceControl.RetryTo"]);
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders["_adapter.Original.ReplyToAddress"]);
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders[Headers.ReplyToAddress]);
     }

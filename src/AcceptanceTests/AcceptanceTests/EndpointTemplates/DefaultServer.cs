@@ -42,8 +42,6 @@
 
             configuration.RegisterComponentsAndInheritanceHierarchy(runDescriptor);
 
-            await configuration.DefinePersistence(runDescriptor, endpointConfiguration).ConfigureAwait(false);
-
             configuration.GetSettings().SetDefault("ScaleOut.UseSingleBrokerQueue", true);
             configurationBuilderCustomization(configuration);
 
