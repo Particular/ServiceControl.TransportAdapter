@@ -23,14 +23,18 @@ namespace ServiceControl.TransportAdapter
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
             backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
-            backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            backendTransportCustomization(backEndTransport);
 
             frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            frontendTransportCustomization(frontEndTransport);
         }
 
         Task OnErrorMessage(MessageContext context, string backendErrorQueue)

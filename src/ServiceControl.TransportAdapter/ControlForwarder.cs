@@ -20,13 +20,17 @@
 
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            frontendTransportCustomization(frontEndTransport);
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
-            backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            backendTransportCustomization(backEndTransport);
         }
         
         Task OnControlMessage(MessageContext context, string backendControlQueue)
