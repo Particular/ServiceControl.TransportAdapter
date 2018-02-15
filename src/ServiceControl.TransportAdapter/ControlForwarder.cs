@@ -20,13 +20,17 @@
 
             frontEndConfig.CustomErrorHandlingPolicy(new BestEffortPolicy(controlMessageImmediateRetries));
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            frontendTransportCustomization(frontEndTransport);
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.Control");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
-            backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            backendTransportCustomization(backEndTransport);
         }
         
         Task OnControlMessage(MessageContext context, string backendControlQueue)
@@ -56,7 +60,7 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
-            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyTo))
             {
                 context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;
