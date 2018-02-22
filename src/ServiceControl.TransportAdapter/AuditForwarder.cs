@@ -13,10 +13,10 @@
         where TEndpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
-        public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
+        public AuditForwarder(string adapterName, string frontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
         {
-            frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
+            frontEndConfig = RawEndpointConfiguration.Create(frontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var transport = frontEndConfig.UseTransport<TEndpoint>();
             frontendTransportCustomization(transport);

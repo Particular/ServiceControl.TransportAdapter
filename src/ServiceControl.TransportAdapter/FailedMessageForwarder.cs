@@ -14,14 +14,14 @@ namespace ServiceControl.TransportAdapter
         where TServiceControl : TransportDefinition, new()
         where TEndpoint : TransportDefinition, new()
     {
-        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmediateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
             RedirectRetriedMessages retryRedirectCallback, PreserveHeaders preserveHeadersCallback, RestoreHeaders restoreHeadersCallback)
         {
             this.retryRedirectCallback = retryRedirectCallback;
             this.preserveHeadersCallback = preserveHeadersCallback;
             this.restoreHeadersCallback = restoreHeadersCallback;
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
-            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
+            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmediateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();

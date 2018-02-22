@@ -8,10 +8,10 @@
     /// <summary>
     /// Configures the ServiceControl transport adapter.
     /// </summary>
-    /// <typeparam name="TENdpoint">Endpoints' transport.</typeparam>
+    /// <typeparam name="TEndpoint">Endpoints' transport.</typeparam>
     /// <typeparam name="TServiceControl">ServiceControl transport.</typeparam>
-    public class TransportAdapterConfig<TENdpoint, TServiceControl>
-        where TENdpoint : TransportDefinition, new()
+    public class TransportAdapterConfig<TEndpoint, TServiceControl>
+        where TEndpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
         internal RedirectRetriedMessages RedirectCallback = (failedQ, headers) => failedQ;
@@ -29,7 +29,7 @@
 
         internal string Name { get; }
 
-        internal Action<TransportExtensions<TENdpoint>> FrontendTransportCustomization { get; private set; } = e => { };
+        internal Action<TransportExtensions<TEndpoint>> FrontendTransportCustomization { get; private set; } = e => { };
         internal Action<TransportExtensions<TServiceControl>> BackendTransportCustomization { get; private set; } = e => { };
 
         /// <summary>
@@ -88,7 +88,7 @@
         /// Use provied callback to customize the endpoint-side transport.
         /// </summary>
         /// <param name="customization">Customization function.</param>
-        public void CustomizeEndpointTransport(Action<TransportExtensions<TENdpoint>> customization)
+        public void CustomizeEndpointTransport(Action<TransportExtensions<TEndpoint>> customization)
         {
             if (customization == null)
             {
