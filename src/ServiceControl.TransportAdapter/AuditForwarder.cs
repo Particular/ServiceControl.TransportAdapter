@@ -19,8 +19,9 @@
             frontEndConfig = RawEndpointConfiguration.Create(frontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var transport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(transport);
             frontEndConfig.AutoCreateQueue();
+            // customizations override defaults
+            frontendTransportCustomization(transport);
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
