@@ -13,14 +13,15 @@
         where TEndpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
-        public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
+        public AuditForwarder(string adapterName, string frontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
         {
-            frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
+            frontEndConfig = RawEndpointConfiguration.Create(frontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var transport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(transport);
             frontEndConfig.AutoCreateQueue();
+            // customizations override defaults
+            frontendTransportCustomization(transport);
 
             backEndConfig = RawEndpointConfiguration.CreateSendOnly($"{adapterName}.AuditForwarder");
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
@@ -35,7 +36,8 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
-            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+
+            if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyTo))
             {
                 context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 context.Headers[TransportAdapterHeaders.ReplyToAddress] = replyTo;

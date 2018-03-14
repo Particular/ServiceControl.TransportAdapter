@@ -14,23 +14,27 @@ namespace ServiceControl.TransportAdapter
         where TServiceControl : TransportDefinition, new()
         where TEndpoint : TransportDefinition, new()
     {
-        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmediateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
             RedirectRetriedMessages retryRedirectCallback, PreserveHeaders preserveHeadersCallback, RestoreHeaders restoreHeadersCallback)
         {
             this.retryRedirectCallback = retryRedirectCallback;
             this.preserveHeadersCallback = preserveHeadersCallback;
             this.restoreHeadersCallback = restoreHeadersCallback;
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
-            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
+            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmediateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
-            backendTransportCustomization(backEndTransport);
             backEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            backendTransportCustomization(backEndTransport);
 
             frontEndConfig = RawEndpointConfiguration.Create(frontendErrorQueue, (context, _) => OnErrorMessage(context, backendErrorQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new ErrorForwardingFailurePolicy());
             var frontEndTransport = frontEndConfig.UseTransport<TEndpoint>();
-            frontendTransportCustomization(frontEndTransport);
             frontEndConfig.AutoCreateQueue();
+
+            // customizations override defaults
+            frontendTransportCustomization(frontEndTransport);
         }
 
         Task OnErrorMessage(MessageContext context, string backendErrorQueue)
@@ -40,7 +44,7 @@ namespace ServiceControl.TransportAdapter
 
             var newHeaders = new Dictionary<string, string>(context.Headers);
 
-            if (newHeaders.TryGetValue(Headers.ReplyToAddress, out string replyTo))
+            if (newHeaders.TryGetValue(Headers.ReplyToAddress, out var replyTo))
             {
                 newHeaders[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
                 newHeaders[TransportAdapterHeaders.ReplyToAddress] = replyTo;
@@ -61,7 +65,7 @@ namespace ServiceControl.TransportAdapter
 
             newHeaders.Remove(TransportAdapterHeaders.TargetEndpointAddress);
 
-            if (newHeaders.TryGetValue(TransportAdapterHeaders.ReplyToAddress, out string replyTo))
+            if (newHeaders.TryGetValue(TransportAdapterHeaders.ReplyToAddress, out var replyTo))
             {
                 newHeaders.Remove(TransportAdapterHeaders.ReplyToAddress);
                 newHeaders[Headers.ReplyToAddress] = replyTo;
