@@ -14,14 +14,14 @@ namespace ServiceControl.TransportAdapter
         where TServiceControl : TransportDefinition, new()
         where TEndpoint : TransportDefinition, new()
     {
-        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmeidateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
+        public FailedMessageForwarder(string adapterName, string frontendErrorQueue, string backendErrorQueue, int retryMessageImmediateRetries, string poisonMessageQueueName, Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization,
             RedirectRetriedMessages retryRedirectCallback, PreserveHeaders preserveHeadersCallback, RestoreHeaders restoreHeadersCallback)
         {
             this.retryRedirectCallback = retryRedirectCallback;
             this.preserveHeadersCallback = preserveHeadersCallback;
             this.restoreHeadersCallback = restoreHeadersCallback;
             backEndConfig = RawEndpointConfiguration.Create($"{adapterName}.Retry", (context, _) => OnRetryMessage(context), poisonMessageQueueName);
-            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmeidateRetries, () => retryToAddress));
+            backEndConfig.CustomErrorHandlingPolicy(new RetryForwardingFailurePolicy(backendErrorQueue, retryMessageImmediateRetries, () => retryToAddress));
             var backEndTransport = backEndConfig.UseTransport<TServiceControl>();
             backEndConfig.AutoCreateQueue();
 
@@ -80,7 +80,7 @@ namespace ServiceControl.TransportAdapter
         {
             var message = new OutgoingMessage(context.MessageId, newHeaders, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Extensions);
         }
 
         public async Task Start()
@@ -161,8 +161,7 @@ namespace ServiceControl.TransportAdapter
                 var headers = handlingContext.Error.Message.Headers;
 
                 //Will show as if failure occured in the original failure queue.
-                string destination;
-                if (headers.TryGetValue(TransportAdapterHeaders.TargetEndpointAddress, out destination))
+                if (headers.TryGetValue(TransportAdapterHeaders.TargetEndpointAddress, out var destination))
                 {
                     headers[FaultsHeaderKeys.FailedQ] = destination;
                     headers.Remove(TransportAdapterHeaders.TargetEndpointAddress);

@@ -13,10 +13,10 @@
         where TEndpoint : TransportDefinition, new()
         where TServiceControl : TransportDefinition, new()
     {
-        public AuditForwarder(string adapterName, string fontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
+        public AuditForwarder(string adapterName, string frontendAuditQueue, string backendAuditQueue, string poisonMessageQueueName,
             Action<TransportExtensions<TEndpoint>> frontendTransportCustomization, Action<TransportExtensions<TServiceControl>> backendTransportCustomization)
         {
-            frontEndConfig = RawEndpointConfiguration.Create(fontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
+            frontEndConfig = RawEndpointConfiguration.Create(frontendAuditQueue, (context, _) => OnAuditMessage(context, backendAuditQueue), poisonMessageQueueName);
             frontEndConfig.CustomErrorHandlingPolicy(new RetryForeverPolicy());
             var transport = frontEndConfig.UseTransport<TEndpoint>();
             frontEndConfig.AutoCreateQueue();
@@ -36,6 +36,7 @@
 
         static Task Forward(MessageContext context, IDispatchMessages forwarder, string destination)
         {
+
             if (context.Headers.TryGetValue(Headers.ReplyToAddress, out var replyTo))
             {
                 context.Headers[Headers.ReplyToAddress] = AddressSanitizer.MakeV5CompatibleAddress(replyTo);
@@ -44,7 +45,7 @@
 
             var message = new OutgoingMessage(context.MessageId, context.Headers, context.Body);
             var operation = new TransportOperation(message, new UnicastAddressTag(destination));
-            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Context);
+            return forwarder.Dispatch(new TransportOperations(operation), context.TransportTransaction, context.Extensions);
         }
 
         public async Task Start()

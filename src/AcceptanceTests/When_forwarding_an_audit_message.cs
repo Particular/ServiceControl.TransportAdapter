@@ -42,8 +42,7 @@ public class When_forwarding_an_audit_message : NServiceBusAcceptanceTest
             EndpointSetup<DefaultServer>(c =>
             {
                 c.SendFailedMessagesTo("error");
-                c.HeartbeatPlugin("Particular.ServiceControl");
-                c.AuditProcessedMessagesTo("Audit");
+                c.AuditProcessedMessagesTo("audit");
             });
         }
 

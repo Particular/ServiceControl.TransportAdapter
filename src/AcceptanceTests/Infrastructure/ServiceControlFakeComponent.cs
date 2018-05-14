@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
 using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.Transport;
+using NUnit.Framework;
 using ServiceControl.TransportAdapter.AcceptanceTests.Infrastructure;
 
 class ServiceControlFakeComponent<TContext> : IComponentBehavior, IServiceControl
@@ -13,7 +15,7 @@ class ServiceControlFakeComponent<TContext> : IComponentBehavior, IServiceContro
     Action<IncomingMessage, TContext> onAudit;
     Func<IncomingMessage, TContext, IServiceControl, Task> onError;
     Action<IncomingMessage, TContext> onControl;
-    ServiceControlFake<MsmqTransport> fake;
+    ServiceControlFake<LearningTransport> fake;
 
     public ServiceControlFakeComponent(Action<IncomingMessage, TContext> onAudit = null, Func<IncomingMessage, TContext, IServiceControl, Task> onError = null, Action<IncomingMessage, TContext> onControl = null)
     {
@@ -26,7 +28,23 @@ class ServiceControlFakeComponent<TContext> : IComponentBehavior, IServiceContro
     {
         var typedContext = (TContext)run.ScenarioContext;
 
-        fake = new ServiceControlFake<MsmqTransport>("Audit.Back", "Error.Back", "Particular.ServiceControl.Back", ex => { });
+        fake = new ServiceControlFake<LearningTransport>("Audit.Back", "Error.Back", "Particular.ServiceControl.Back", ex =>
+        {
+            var testRunId = TestContext.CurrentContext.Test.ID;
+            string tempDir;
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                //can't use bin dir since that will be too long on the build agents
+                tempDir = @"c:\temp";
+            }
+            else
+            {
+                tempDir = Path.GetTempPath();
+            }
+
+            var storageDir = Path.Combine(tempDir, testRunId);
+            ex.StorageDirectory(storageDir);
+        });
         fake.ControlMessage += (sender, message) => onControl?.Invoke(message, typedContext);
         fake.MessageAudited += (sender, message) => onAudit?.Invoke(message, typedContext);
         fake.MessageFailed += (sender, message) => onError?.Invoke(message, typedContext, this);
@@ -41,9 +59,9 @@ class ServiceControlFakeComponent<TContext> : IComponentBehavior, IServiceContro
 
     class Runner : ComponentRunner
     {
-        ServiceControlFake<MsmqTransport> serviceControlFake;
+        ServiceControlFake<LearningTransport> serviceControlFake;
 
-        public Runner(ServiceControlFake<MsmqTransport> serviceControlFake)
+        public Runner(ServiceControlFake<LearningTransport> serviceControlFake)
         {
             this.serviceControlFake = serviceControlFake;
         }

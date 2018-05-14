@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
-MinimumVisualStudioVersion = 10.0.40219.1
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 15.0.26430.12
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.TransportAdapter", "ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj", "{9B891C3B-8051-4BB5-9257-6A954CF908C3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AcceptanceTests", "AcceptanceTests\AcceptanceTests.csproj", "{95B821CD-36ED-419D-93B5-42490F9D2D76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceControl.TransportAdapter.Tests", "ServiceControl.TransportAdapter.Tests\ServiceControl.TransportAdapter.Tests.csproj", "{A7C5D568-75C5-4438-84E3-C0DDD10415FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.TransportAdapter.Tests", "ServiceControl.TransportAdapter.Tests\ServiceControl.TransportAdapter.Tests.csproj", "{A7C5D568-75C5-4438-84E3-C0DDD10415FA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C6BE34B3-B892-4E04-962B-238C5CF83F7B}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		..\GitVersion.yml = ..\GitVersion.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +36,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C4B34858-23B4-46E6-9047-25DF40637C35}
 	EndGlobalSection
 EndGlobal

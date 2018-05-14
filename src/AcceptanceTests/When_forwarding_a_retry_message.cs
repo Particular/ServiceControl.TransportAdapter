@@ -41,7 +41,6 @@ public class When_forwarding_a_retry_message : NServiceBusAcceptanceTest
             EndpointSetup<DefaultServer>(c =>
             {
                 c.SendFailedMessagesTo("error");
-                c.HeartbeatPlugin("Particular.ServiceControl");
             });
         }
 

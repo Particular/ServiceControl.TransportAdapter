@@ -8,16 +8,9 @@
     {
         public static async Task DefineTransport(this EndpointConfiguration config, RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration)
         {
-            var transportConfiguration = new ConfigureEndpointMsmqTransport();
-            await transportConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, config, runDescriptor.Settings, endpointCustomizationConfiguration.PublisherMetadata);
+            var transportConfiguration = new ConfigureEndpointLearningTransport();
+            await transportConfiguration.Configure(config);
             runDescriptor.OnTestCompleted(_ => transportConfiguration.Cleanup());
-        }
-
-        public static async Task DefinePersistence(this EndpointConfiguration config, RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointCustomizationConfiguration)
-        {
-            var persistenceConfiguration = new ConfigureEndpointInMemoryPersistence();
-            await persistenceConfiguration.Configure(endpointCustomizationConfiguration.EndpointName, config, runDescriptor.Settings, endpointCustomizationConfiguration.PublisherMetadata);
-            runDescriptor.OnTestCompleted(_ => persistenceConfiguration.Cleanup());
         }
 
         public static void RegisterComponentsAndInheritanceHierarchy(this EndpointConfiguration builder, RunDescriptor runDescriptor)

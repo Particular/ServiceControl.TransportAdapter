@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting;
@@ -6,7 +7,6 @@ using NServiceBus.AcceptanceTests;
 using NServiceBus.AcceptanceTests.EndpointTemplates;
 using NServiceBus.Faults;
 using NUnit.Framework;
-using Conventions = NServiceBus.AcceptanceTesting.Customization.Conventions;
 
 [TestFixture]
 public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
@@ -25,7 +25,7 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
                     c.ReturnedRetryHeaders = m.Headers;
                     return Task.CompletedTask;
                 }
-                m.Headers["ServiceControl.TargetEndpointAddress"] = "InvalidAddress";
+                m.Headers[FaultsHeaderKeys.FailedQ] = new string(Path.GetInvalidFileNameChars());
                 c.RetryForwarded = true;
                 return sc.Retry(m);
             }))
@@ -34,8 +34,6 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
 
         Assert.IsTrue(result.RetryForwarded);
         Assert.IsTrue(result.RetryReturned);
-
-        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.ReturnedRetryHeaders[FaultsHeaderKeys.FailedQ]);
     }
 
     class Context : ScenarioContext
@@ -52,7 +50,6 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
             EndpointSetup<DefaultServer>(c =>
             {
                 c.SendFailedMessagesTo("error");
-                c.HeartbeatPlugin("Particular.ServiceControl");
             });
         }
 
@@ -62,6 +59,10 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
 
             public Task Handle(MyMessage message, IMessageHandlerContext context)
             {
+                if (Context.RetryForwarded)
+                {
+                    return Task.CompletedTask;
+                }
                 throw new SimulatedException("Boom!");
             }
         }

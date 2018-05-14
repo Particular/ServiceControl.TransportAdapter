@@ -1,6 +1,6 @@
 ﻿namespace ServiceControl.TransportAdapter.Tests
 {
-    using NServiceBus.Configuration.AdvanceExtensibility;
+    using NServiceBus.Configuration.AdvancedExtensibility;
     using NServiceBus.Settings;
     using NUnit.Framework;
 
