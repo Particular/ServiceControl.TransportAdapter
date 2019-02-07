@@ -13,10 +13,12 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\packaging\nuget\servicecontrol.transportadapter.nuspec" Link="servicecontrol.transportadapter.nuspec" />
-    <PackageReference Include="GitVersionTask" Version="3.6.5" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="NServiceBus" Version="6.3.4" />
     <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
-    <PackageReference Include="NuGetPackager" Version="0.6.1" />
     <PackageReference Include="Particular.Packaging" Version="0.2.1" PrivateAssets="All" />
   </ItemGroup>
 </Project>
