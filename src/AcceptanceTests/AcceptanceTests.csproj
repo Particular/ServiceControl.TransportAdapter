@@ -17,7 +17,7 @@
     <PackageReference Include="NServiceBus.AcceptanceTesting" Version="6.3.4" />
     <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
     <PackageReference Include="NUnit" Version="3.11.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
     <PackageReference Include="ServiceControl.Plugin.Nsb6.Heartbeat" Version="3.0.1" />
   </ItemGroup>
 
