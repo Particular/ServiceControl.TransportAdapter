@@ -1,24 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <OutputPath>..\..\binaries\</OutputPath>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>CS0618</NoWarn>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\NServiceBus.snk</AssemblyOriginatorKeyFile>
+    <Description>Adapter for connecting ServiceControl with a different transport than the endpoints use</Description>
   </PropertyGroup>
+
   <ItemGroup>
-    <None Include="..\..\packaging\nuget\servicecontrol.transportadapter.nuspec" Link="servicecontrol.transportadapter.nuspec" />
-    <PackageReference Include="GitVersionTask" Version="4.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="NServiceBus" Version="6.3.4" />
-    <PackageReference Include="NServiceBus.Raw" Version="2.0.2" />
+    <PackageReference Include="NServiceBus" Version="[6.0.0, 7.0.0)" />
+    <PackageReference Include="NServiceBus.Raw" Version="[2.0.2, 3.0.0)" />
     <PackageReference Include="Particular.Packaging" Version="0.2.1" PrivateAssets="All" />
   </ItemGroup>
+
 </Project>

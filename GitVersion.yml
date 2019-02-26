@@ -2,5 +2,5 @@ assembly-versioning-scheme: Major
 branches:
   develop:
     tag: alpha
-  releases?[/-]:
+  release:
     tag: rc
