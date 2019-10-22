@@ -8,3 +8,6 @@ branches:
     tracks-release-branches: true
   release:
     tag: ''
+ignore:
+  sha:
+    - b4e376a325a857656b7bde18610754e5a2f94a64
