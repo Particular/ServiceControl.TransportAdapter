@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="NServiceBus" Version="[7.0.0, 8.0.0)" />
-    <PackageReference Include="NServiceBus.Raw" Version="[3.0.0, 4.0.0)" />
+    <PackageReference Include="NServiceBus.Raw" Version="[3.0.2, 4.0.0)" />
     <PackageReference Include="Particular.Packaging" Version="0.3.0" PrivateAssets="All" />
   </ItemGroup>
 
