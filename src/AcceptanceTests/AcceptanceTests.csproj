@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
@@ -11,11 +11,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="7.4.2" />
+    <PackageReference Include="NServiceBus.AcceptanceTesting" Version="8.0.0-alpha.541" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.2" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="NServiceBus.Heartbeat" Version="3.0.1" />
+    <PackageReference Include="NServiceBus.Heartbeat" Version="4.0.0-alpha.99" />
   </ItemGroup>
 
 </Project>
