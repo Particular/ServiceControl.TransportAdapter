@@ -46,14 +46,19 @@ public class When_forwarding_a_retry_message : NServiceBusAcceptanceTest
 
         class MyMessageHandler : IHandleMessages<MyMessage>
         {
-            public Context Context { get; set; }
+            Context testContext;
+
+            public MyMessageHandler(Context context)
+            {
+                testContext = context;
+            }
 
             public Task Handle(MyMessage message, IMessageHandlerContext context)
             {
                 if (context.MessageHeaders.ContainsKey("IsRetry"))
                 {
-                    Context.RetryHeaders = context.MessageHeaders;
-                    Context.RetryForwarded = true;
+                    testContext.RetryHeaders = context.MessageHeaders;
+                    testContext.RetryForwarded = true;
                     return Task.CompletedTask;
                 }
                 throw new SimulatedException("Boom!");
