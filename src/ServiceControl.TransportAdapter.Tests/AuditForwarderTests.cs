@@ -13,7 +13,6 @@
             const string CreateQueuesKey = "NServiceBus.Raw.CreateQueue";
 
             SettingsHolder frontEndSettings = null, backendSettings = null;
-            // ReSharper disable once UnusedVariable
             var auditForwarder = new AuditForwarder<FakeTransport, FakeTransport>("adapterName", "frontendAuditQueue", "backendAuditQueue", "poisonMessageQueue", frontend =>
             {
                 frontEndSettings = frontend.GetSettings();
