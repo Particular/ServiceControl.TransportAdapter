@@ -20,7 +20,7 @@
 
             CollectionAssert.IsEmpty(missingBaseClass, string.Join(",", missingBaseClass));
         }
-        
+
         static bool HasTestMethod(Type t)
         {
             return t.GetMethods().Any(m => m.GetCustomAttributes<TestAttribute>().Any());

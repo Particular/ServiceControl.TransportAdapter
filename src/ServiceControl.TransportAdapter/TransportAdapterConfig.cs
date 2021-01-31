@@ -90,11 +90,7 @@
         /// <param name="customization">Customization function.</param>
         public void CustomizeEndpointTransport(Action<TransportExtensions<TEndpoint>> customization)
         {
-            if (customization == null)
-            {
-                throw new ArgumentNullException(nameof(customization));
-            }
-            FrontendTransportCustomization = customization;
+            FrontendTransportCustomization = customization ?? throw new ArgumentNullException(nameof(customization));
         }
 
         /// <summary>
@@ -103,11 +99,7 @@
         /// <param name="customization">Customization function.</param>
         public void CustomizeServiceControlTransport(Action<TransportExtensions<TServiceControl>> customization)
         {
-            if (customization == null)
-            {
-                throw new ArgumentNullException(nameof(customization));
-            }
-            BackendTransportCustomization = customization;
+            BackendTransportCustomization = customization ?? throw new ArgumentNullException(nameof(customization));
         }
 
         /// <summary>
