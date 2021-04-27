@@ -1,0 +1,4 @@
+[*.cs]
+
+# PS0018: A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext
+dotnet_diagnostic.PS0018.severity = suggestion
