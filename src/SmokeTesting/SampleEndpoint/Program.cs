@@ -45,7 +45,6 @@ class SomeMessageHandler : IHandleMessages<SomeMessage>
 #pragma warning restore PS0018 // A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext
     {
         Console.WriteLine($"Received {message.CustomerId} - ReplyTo: {context.MessageHeaders[Headers.ReplyToAddress]}");
-        //throw new Exception("BAM!");
-        return Task.CompletedTask;
+        return new Random().Next(1000) % 2 == 1 ? throw new Exception("BAM!") : Task.CompletedTask;
     }
 }
