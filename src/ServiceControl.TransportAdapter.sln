@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 15.0.26430.12
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.TransportAdapter", "ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj", "{9B891C3B-8051-4BB5-9257-6A954CF908C3}"
 EndProject
@@ -14,6 +14,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		..\GitVersion.yml = ..\GitVersion.yml
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmokeTesting", "SmokeTesting", "{4847B670-5AD7-41D2-B278-47BA14466FF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleEndpoint", "SmokeTesting\SampleEndpoint\SampleEndpoint.csproj", "{00927C6B-9A58-454B-8DB5-1A69F4242E5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleTransportAdapter", "SmokeTesting\SampleTransportAdapter\SampleTransportAdapter.csproj", "{804245B3-FC20-4EA3-94BA-ED4146A220E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,9 +39,21 @@ Global
 		{A7C5D568-75C5-4438-84E3-C0DDD10415FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7C5D568-75C5-4438-84E3-C0DDD10415FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7C5D568-75C5-4438-84E3-C0DDD10415FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00927C6B-9A58-454B-8DB5-1A69F4242E5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00927C6B-9A58-454B-8DB5-1A69F4242E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00927C6B-9A58-454B-8DB5-1A69F4242E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00927C6B-9A58-454B-8DB5-1A69F4242E5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{804245B3-FC20-4EA3-94BA-ED4146A220E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{804245B3-FC20-4EA3-94BA-ED4146A220E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{804245B3-FC20-4EA3-94BA-ED4146A220E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{804245B3-FC20-4EA3-94BA-ED4146A220E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{00927C6B-9A58-454B-8DB5-1A69F4242E5A} = {4847B670-5AD7-41D2-B278-47BA14466FF5}
+		{804245B3-FC20-4EA3-94BA-ED4146A220E2} = {4847B670-5AD7-41D2-B278-47BA14466FF5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C4B34858-23B4-46E6-9047-25DF40637C35}
