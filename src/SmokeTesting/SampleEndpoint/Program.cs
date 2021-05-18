@@ -40,9 +40,7 @@ class SomeMessage
 
 class SomeMessageHandler : IHandleMessages<SomeMessage>
 {
-#pragma warning disable PS0018 // A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext
     public Task Handle(SomeMessage message, IMessageHandlerContext context)
-#pragma warning restore PS0018 // A task-returning method should have a CancellationToken parameter unless it has a parameter implementing ICancellableContext
     {
         Console.WriteLine($"Received {message.CustomerId} - ReplyTo: {context.MessageHeaders[Headers.ReplyToAddress]}");
         return new Random().Next(1000) % 2 == 1 ? throw new Exception("BAM!") : Task.CompletedTask;
