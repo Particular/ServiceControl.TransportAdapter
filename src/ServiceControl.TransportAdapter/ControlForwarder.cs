@@ -32,7 +32,7 @@
             // customizations override defaults
             backendTransportCustomization(backEndTransport);
         }
-        
+
         Task OnControlMessage(MessageContext context, string backendControlQueue)
         {
             logger.Debug("Forwarding a control message.");

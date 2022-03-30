@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Remove after upgrading to NServiceBus 8.x -->
+    <ParticularAnalyzersVersion>0.9.0</ParticularAnalyzersVersion>
+  </PropertyGroup>
+
+</Project>

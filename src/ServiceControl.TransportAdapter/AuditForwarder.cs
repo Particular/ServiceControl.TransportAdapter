@@ -1,6 +1,5 @@
 ﻿namespace ServiceControl.TransportAdapter
 {
-   
     using System;
     using System.Threading.Tasks;
     using NServiceBus;
