@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31205.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 15.0.26430.12
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceControl.TransportAdapter", "ServiceControl.TransportAdapter\ServiceControl.TransportAdapter.csproj", "{9B891C3B-8051-4BB5-9257-6A954CF908C3}"
 EndProject
@@ -12,14 +12,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C6BE34B3-B892-4E04-962B-238C5CF83F7B}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
-		..\GitVersion.yml = ..\GitVersion.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SmokeTesting", "SmokeTesting", "{4847B670-5AD7-41D2-B278-47BA14466FF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleEndpoint", "SmokeTesting\SampleEndpoint\SampleEndpoint.csproj", "{00927C6B-9A58-454B-8DB5-1A69F4242E5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleEndpoint", "SmokeTesting\SampleEndpoint\SampleEndpoint.csproj", "{00927C6B-9A58-454B-8DB5-1A69F4242E5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleTransportAdapter", "SmokeTesting\SampleTransportAdapter\SampleTransportAdapter.csproj", "{804245B3-FC20-4EA3-94BA-ED4146A220E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleTransportAdapter", "SmokeTesting\SampleTransportAdapter\SampleTransportAdapter.csproj", "{804245B3-FC20-4EA3-94BA-ED4146A220E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
