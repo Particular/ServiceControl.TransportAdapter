@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net452;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
@@ -17,7 +17,7 @@
     <PackageReference Include="NServiceBus" Version="7.8.2" />
     <PackageReference Include="NServiceBus.Raw" Version="3.2.5" />
     <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
   </ItemGroup>
 
 </Project>
