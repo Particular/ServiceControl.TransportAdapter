@@ -23,8 +23,11 @@
                 backendSettings.Set(CreateQueuesKey, false);
             }, (q, headers) => string.Empty, headers => { }, headers => { });
 
-            Assert.That(frontEndSettings.Get<bool>(CreateQueuesKey), Is.False);
-            Assert.That(backendSettings.Get<bool>(CreateQueuesKey), Is.False);
+            Assert.Multiple(() =>
+            {
+                Assert.That(frontEndSettings.Get<bool>(CreateQueuesKey), Is.False);
+                Assert.That(backendSettings.Get<bool>(CreateQueuesKey), Is.False);
+            });
         }
     }
 }

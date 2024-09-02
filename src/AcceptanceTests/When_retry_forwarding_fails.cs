@@ -32,8 +32,11 @@ public class When_retry_forwarding_fails : NServiceBusAcceptanceTest
             .Done(c => c.RetryReturned)
             .Run();
 
-        Assert.That(result.RetryForwarded, Is.True);
-        Assert.That(result.RetryReturned, Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.RetryForwarded, Is.True);
+            Assert.That(result.RetryReturned, Is.True);
+        });
     }
 
     class Context : ScenarioContext

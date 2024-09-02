@@ -25,8 +25,11 @@ public class When_forwarding_a_failed_message : NServiceBusAcceptanceTest
             .Done(c => c.ErrorForwarded)
             .Run();
 
-        Assert.That(result.ErrorForwarded, Is.True);
-        Assert.That(result.FailedMessageHeaders["ServiceControl.RetryTo"], Is.EqualTo("Adapter.Retry"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.ErrorForwarded, Is.True);
+            Assert.That(result.FailedMessageHeaders["ServiceControl.RetryTo"], Is.EqualTo("Adapter.Retry"));
+        });
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders["_adapter.Original.ReplyToAddress"]);
         StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders[Headers.ReplyToAddress]);
     }
