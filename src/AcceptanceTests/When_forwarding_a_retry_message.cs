@@ -24,8 +24,11 @@ public class When_forwarding_a_retry_message : NServiceBusAcceptanceTest
             .Done(c => c.RetryForwarded)
             .Run();
 
-        Assert.That(result.RetryForwarded, Is.True);
-        Assert.That(result.RetryHeaders[Headers.ReplyToAddress], Does.StartWith(Conventions.EndpointNamingConvention(typeof(FautyEndpoint))));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.RetryForwarded, Is.True);
+            Assert.That(result.RetryHeaders[Headers.ReplyToAddress], Does.StartWith(Conventions.EndpointNamingConvention(typeof(FautyEndpoint))));
+        });
     }
 
     class Context : ScenarioContext
