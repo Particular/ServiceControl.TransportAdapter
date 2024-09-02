@@ -25,10 +25,13 @@ public class When_forwarding_a_failed_message : NServiceBusAcceptanceTest
             .Done(c => c.ErrorForwarded)
             .Run();
 
-        Assert.IsTrue(result.ErrorForwarded);
-        Assert.AreEqual("Adapter.Retry", result.FailedMessageHeaders["ServiceControl.RetryTo"]);
-        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders["_adapter.Original.ReplyToAddress"]);
-        StringAssert.StartsWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint)), result.FailedMessageHeaders[Headers.ReplyToAddress]);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.ErrorForwarded, Is.True);
+            Assert.That(result.FailedMessageHeaders["ServiceControl.RetryTo"], Is.EqualTo("Adapter.Retry"));
+            Assert.That(result.FailedMessageHeaders["_adapter.Original.ReplyToAddress"], Does.StartWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint))));
+            Assert.That(result.FailedMessageHeaders[Headers.ReplyToAddress], Does.StartWith(Conventions.EndpointNamingConvention(typeof(FaultyEndpoint))));
+        });
     }
 
     class Context : ScenarioContext
