@@ -18,7 +18,7 @@ public class When_forwarding_a_control_message : NServiceBusAcceptanceTest
             .Done(c => c.ControlForwarded)
             .Run();
 
-        Assert.IsTrue(result.ControlForwarded);
+        Assert.That(result.ControlForwarded, Is.True);
     }
 
     class Context : ScenarioContext
