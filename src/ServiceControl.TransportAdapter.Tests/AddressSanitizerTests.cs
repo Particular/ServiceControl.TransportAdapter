@@ -9,7 +9,7 @@ public class AddressSanitizerTests
     {
         var result = AddressSanitizer.MakeV5CompatibleAddress("Queue");
 
-        Assert.AreEqual("Queue", result);
+        Assert.That(result, Is.EqualTo("Queue"));
     }
 
     [Test]
@@ -17,7 +17,7 @@ public class AddressSanitizerTests
     {
         var result = AddressSanitizer.MakeV5CompatibleAddress("Queue@Machine");
 
-        Assert.AreEqual("Queue@Machine", result);
+        Assert.That(result, Is.EqualTo("Queue@Machine"));
     }
 
     [Test]
@@ -25,6 +25,6 @@ public class AddressSanitizerTests
     {
         var result = AddressSanitizer.MakeV5CompatibleAddress("Queue@Machine@Something");
 
-        Assert.AreEqual("Queue@Machine", result);
+        Assert.That(result, Is.EqualTo("Queue@Machine"));
     }
 }
