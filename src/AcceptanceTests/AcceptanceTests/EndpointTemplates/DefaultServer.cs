@@ -10,15 +10,9 @@
 
     public class DefaultServer : IEndpointSetupTemplate
     {
-        public DefaultServer()
-        {
-            typesToInclude = new List<Type>();
-        }
+        public DefaultServer() => typesToInclude = [];
 
-        public DefaultServer(List<Type> typesToInclude)
-        {
-            this.typesToInclude = typesToInclude;
-        }
+        public DefaultServer(List<Type> typesToInclude) => this.typesToInclude = typesToInclude;
 
         public async Task<EndpointConfiguration> GetConfiguration(RunDescriptor runDescriptor, EndpointCustomizationConfiguration endpointConfiguration, Action<EndpointConfiguration> configurationBuilderCustomization)
         {
